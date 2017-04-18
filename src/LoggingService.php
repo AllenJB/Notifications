@@ -27,7 +27,7 @@ class LoggingService
     }
 
 
-    public function __construct(string $sentryDSN, string $appEnvironment, ?string $appVersion, array $globalTags)
+    public function __construct($sentryDSN, $appEnvironment, $appVersion, array $globalTags)
     {
         $globalTags['sapi'] = php_sapi_name();
 
@@ -84,7 +84,7 @@ class LoggingService
             $dt->setTimezone(new \DateTimeZone("UTC"));
             $data['timestamp'] = $dt->format('Y-m-d\TH:i:s\Z');
         }
-        if (($event->getFingerprint() ?? "") !== null) {
+        if (!empty($event->getFingerprint())) {
             $data['fingerprint'] = ['{{default}}', $event->getFingerprint()];
         }
         if ($event->getLevel() !== null) {

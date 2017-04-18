@@ -20,31 +20,31 @@ class Notifications
     protected static $projectRoot = null;
 
 
-    public static function setDefaultMailTransport(AbstractTransport $transport) : void
+    public static function setDefaultMailTransport(AbstractTransport $transport)
     {
         static::$defaultTransport = $transport;
     }
 
 
-    public static function setDeveloperEmails(array $emails) : void
+    public static function setDeveloperEmails(array $emails)
     {
         static::$devEmails = $emails;
     }
 
 
-    public static function setProjectName(string $projectName) : void
+    public static function setProjectName($projectName)
     {
         static::$projectName = $projectName;
     }
 
 
-    public static function setProjectRoot(string $rootPath) : void
+    public static function setProjectRoot($rootPath)
     {
         static::$projectRoot = $rootPath;
     }
 
 
-    public static function email(string $msg, string $subject, \Throwable $exception = null) : void
+    public static function email($msg, $subject, \Exception $exception = null)
     {
         $msg = "Automated Notification:\n" . $msg;
 
@@ -89,7 +89,7 @@ class Notifications
      *
      * @param Notification $notification
      */
-    public static function any(Notification $notification) : void
+    public static function any(Notification $notification)
     {
         $sendEmail = true;
         $service = LoggingService::getInstance();
@@ -129,10 +129,10 @@ class Notifications
 
 
     /**
-     * @param \Throwable $e
+     * @param \Exception $e
      * @return string
      */
-    protected static function get_exception_stack_string(\Throwable $e) : string
+    protected static function get_exception_stack_string(\Exception $e)
     {
         $email = "Message: {$e->getMessage()}"
             . "\nType: " . get_class($e)

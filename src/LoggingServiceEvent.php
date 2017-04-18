@@ -31,7 +31,7 @@ class LoggingServiceEvent
     protected $excludeStackTrace = false;
 
 
-    public function __construct($messageOrException, ?string $level = null)
+    public function __construct($messageOrException, $level = null)
     {
         if (is_scalar($messageOrException)) {
             $this->setMessage($messageOrException);
@@ -51,40 +51,40 @@ class LoggingServiceEvent
     }
 
 
-    public function getTimeStamp() : \DateTimeInterface
+    public function getTimeStamp()
     {
         return $this->timestamp;
     }
 
 
-    public function getMessage() : ?string
+    public function getMessage()
     {
         return $this->message;
     }
 
 
-    public function setMessage($message) : void
+    public function setMessage($message)
     {
         $this->message = $message;
     }
 
 
-    public function getLevel() : ?string
+    public function getLevel()
     {
         return $this->level;
     }
 
 
-    public function setLevel(string $level) : void
+    public function setLevel(string $level)
     {
-        if (!in_array($level, static::$validLevels)) {
+        if (!in_array($level, static::$validLevels, true)) {
             throw new \InvalidArgumentException("Level must be one of: ". implode(', ', static::$validLevels));
         }
         $this->level = $level;
     }
 
 
-    public function getLogger() : ?string
+    public function getLogger()
     {
         return $this->logger;
     }
@@ -93,19 +93,19 @@ class LoggingServiceEvent
     /**
      * Set a name for what produced this event
      */
-    public function setLogger(string $logger) : void
+    public function setLogger($logger)
     {
         $this->logger = $logger;
     }
 
 
-    public function getTags() : array
+    public function getTags()
     {
         return $this->tags;
     }
 
 
-    public function addTags($tag) : void
+    public function addTags($tag)
     {
         if (!is_scalar($tag)) {
             throw new \InvalidArgumentException("Tag must be a scalar (non-array) value");
@@ -114,27 +114,27 @@ class LoggingServiceEvent
     }
 
 
-    public function setTags(array $tags) : void
+    public function setTags(array $tags)
     {
         $this->containsScalars($tags, "Tags");
         $this->tags = $tags;
     }
 
 
-    public function getUser() : ?array
+    public function getUser()
     {
         return $this->user;
     }
 
 
-    public function setUser(array $user) : void
+    public function setUser(array $user)
     {
         $this->containsScalars($user, "User data");
         $this->user = $user;
     }
 
 
-    public function getFingerprint() : ?string
+    public function getFingerprint()
     {
         return $this->fingerprint;
     }
@@ -143,49 +143,49 @@ class LoggingServiceEvent
     /**
      * Set a fingerprint for this event. Events with the same fingerprint will be grouped.
      */
-    public function setFingerprint(string $fingerprint) : void
+    public function setFingerprint($fingerprint)
     {
         $this->fingerprint = $fingerprint;
     }
 
 
-    public function getException() : ?\Throwable
+    public function getException()
     {
         return $this->exception;
     }
 
 
-    public function setException(\Throwable $e) : void
+    public function setException(\Exception $e)
     {
         $this->exception = $e;
     }
 
 
-    public function getContext() : array
+    public function getContext()
     {
         return $this->context;
     }
 
 
-    public function setContext(array $context) : void
+    public function setContext(array $context)
     {
         $this->context = $context;
     }
 
 
-    public function setExcludeStackTrace(bool $exclude = true) : void
+    public function setExcludeStackTrace($exclude = true)
     {
         $this->excludeStackTrace = $exclude;
     }
 
 
-    public function getExcludeStackTrace() : bool
+    public function getExcludeStackTrace()
     {
         return $this->excludeStackTrace;
     }
 
 
-    protected function containsScalars(array $arr, $thing) : void
+    protected function containsScalars(array $arr, $thing)
     {
         foreach ($arr as $key => $value) {
             if (!is_scalar($value)) {
@@ -195,7 +195,7 @@ class LoggingServiceEvent
     }
 
 
-    protected function containsScalarsOrArrays(array $arr, $thing, array $keyPath = []) : void
+    protected function containsScalarsOrArrays(array $arr, $thing, array $keyPath = [])
     {
         foreach ($arr as $key => $value) {
             $newKeyPath = $keyPath;
