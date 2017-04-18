@@ -1,0 +1,36 @@
+{
+  "name": "allenjb/notifications",
+  "type": "library",
+  "description": "Library for handling error reports and developer notifications (via email or Sentry)",
+  "keywords": [
+    "AllenJB",
+    "Notifications",
+    "Sentry",
+    "email",
+    "error",
+    "reporting"
+  ],
+  "homepage": "https://github.com/AllenJB/Notifications",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "AllenJB",
+      "email": "php-packages@allenjb.me.uk",
+      "homepage": "https://github.com/AllenJB",
+      "role": "Developer"
+    }
+  ],
+  "require": {
+    "php": "~7.1",
+    "sentry/sentry": "^1.5",
+    "allenjb/mailer": "^2.0"
+  },
+  "suggest": {
+    "allenjb/plates": "Required for Slim / PSR7 integration"
+  },
+  "autoload": {
+    "psr-4": {
+      "allenjb\\notifications\\": "src"
+    }
+  }
+}
