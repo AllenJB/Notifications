@@ -49,16 +49,27 @@ class SlimErrorHandler extends ErrorHandler
                 $errorResponse = $errorResponse->write('An error occurred. The developers have been notified.');
                 return $errorResponse;
             }
+
+            print "\nUncaught Exception: {$e->getMessage()}"
+                . "\nLocation: {$e->getFile()} @ line {$e->getLine()}"
+                . "\n\n{$e->getTraceAsString()}\n";
             exit(1);
         }
 
         // Return a new error page response, wiping any existing response content
         // TODO View location should be configured somehow (during setup?)
-        $errorResponse = new Response(500, new Headers());
-        $templates = new Engine(static::$projectRoot . '/App/Views');
-        $templates->loadExtension(new Escape());
-        $errorResponse = $errorResponse->write($templates->render('Error/Server'));
-        return $errorResponse;
+        if (in_array(static::getOutputFormat(), ['text', 'html', 'json'])) {
+            $errorResponse = new Response(500, new Headers());
+            $templates = new Engine(static::$projectRoot . '/App/Views');
+            $templates->loadExtension(new Escape());
+            $errorResponse = $errorResponse->write($templates->render('Error/Server'));
+            return $errorResponse;
+        }
+
+        print "\nUncaught Exception: {$e->getMessage()}"
+            . "\nLocation: {$e->getFile()} @ line {$e->getLine()}"
+            . "\n\n{$e->getTraceAsString()}\n";
+        exit(1);
     }
 
 }

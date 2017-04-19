@@ -41,7 +41,7 @@ class ErrorHandler
     protected static $appEnvironment = "";
 
 
-    public static function setup(string $projectRoot, string $projectName, string $appEnvironment)
+    public static function setup(string $projectRoot, string $projectName, string $appEnvironment) : void
     {
         static::$projectRoot = $projectRoot;
         static::$projectName = $projectName;
@@ -53,7 +53,7 @@ class ErrorHandler
     }
 
 
-    public static function setupCodeIgniter()
+    public static function setupCodeIgniter() : void
     {
         register_shutdown_function([__CLASS__, 'handleShutdown']);
     }
@@ -80,7 +80,7 @@ class ErrorHandler
     }
 
 
-    protected static function email($msg, $subject, $addStackTrace = true)
+    protected static function email(string $msg, string $subject, bool $addStackTrace = true) : void
     {
         // We provide a fallback value for DEVELOPER_EMAILS just in case it's not defined for any reason
         $emails = static::$devEmails;
@@ -178,7 +178,7 @@ class ErrorHandler
     /**
      * Display a generic error page
      */
-    protected static function displayError()
+    protected static function displayError() : void
     {
         $requestUri = ($_SERVER['REQUEST_URI'] ?? '');
         $doNotRedirect = (strpos($requestUri, '/error') === 0);
@@ -334,7 +334,7 @@ class ErrorHandler
     }
 
 
-    public static function handleShutdown()
+    public static function handleShutdown() : void
     {
         static::handleShutdownError();
         static::handleShutdownMemory();
@@ -344,7 +344,7 @@ class ErrorHandler
     /**
      * Note: We explicitly avoid using outside code as we may have hit memory limit and have very little to work with
      */
-    protected static function handleShutdownError()
+    protected static function handleShutdownError() : void
     {
         $lastError = error_get_last();
         if (! (is_array($lastError) && array_key_exists('type', $lastError))) {
@@ -385,7 +385,7 @@ class ErrorHandler
      * Check the amount of memory used by the request and report if it's close to the memory limit
      * Note: We explicitly avoid using outside code as we may be near memory limit
      */
-    protected static function handleShutdownMemory()
+    protected static function handleShutdownMemory() : void
     {
         $warnPercentage = 0.75;
         $memoryLimit = ini_get('memory_limit');
@@ -475,7 +475,7 @@ class ErrorHandler
     }
 
 
-    public static function uncaughtException(\Throwable $e)
+    public static function uncaughtException(\Throwable $e) : void
     {
         // Set variables used in php_error template
         $stacktrace = $e->getTraceAsString();
