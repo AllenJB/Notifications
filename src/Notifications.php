@@ -48,10 +48,10 @@ class Notifications
     {
         $msg = "Automated Notification:\n" . $msg;
 
-        if (is_object($exception) && (($exception instanceof \Throwable) || ($exception instanceof \Exception))) {
-            $msg .= "\n\n" . static::get_exception_stack_string($exception);
+        if (is_object($exception) && ($exception instanceof \Exception)) {
+            $msg .= "\n\n" . ErrorHandler::exceptionAsString($exception);
         } else {
-            $msg .= "\n\nBacktrace:\n" . static::get_backtrace_string();
+            $msg .= "\n\nBacktrace:\n" . ErrorHandler::stackTraceString();
         }
 
         $msg .= "\n\n_SERVER: " . print_r($_SERVER, true);
@@ -125,121 +125,6 @@ class Notifications
             }
             static::email($msg, $subject, $notification->getException());
         }
-    }
-
-
-    /**
-     * @param \Exception $e
-     * @return string
-     */
-    protected static function get_exception_stack_string(\Exception $e)
-    {
-        $email = "Message: {$e->getMessage()}"
-            . "\nType: " . get_class($e)
-            . "\nCode: " . $e->getCode()
-            . "\nLine: " . $e->getLine()
-            . "\nFile: " . $e->getFile();
-
-        if (is_a($e, '\SubTech\CsvException')) {
-            $email .= "\nCSV Line No: " . $e->csvLineNo
-                . "\nHeaders: " . print_r($e->csvHeaders, true)
-                . "\nRecord: " . print_r($e->csvLine, true);
-        }
-
-        if (is_a($e, '\AllenJB\Sql\DatebaseQueryException') || is_a($e, '\SubTech\Sql\DatabaseQueryException')) {
-            $email .= "\nStatement:\n" . print_r($e->getStatement(), true);
-            $email .= "\n\nValues:\n" . print_r($e->getValues(), true);
-        }
-
-        if (is_a($e, '\GuzzleHttp\Exception\TransferException')) {
-            if (is_object($e->getResponse())) {
-                $email .= "\nResponse Body:\n" . $e->getResponse()->getBody()->getContents();
-                $email .= "\n\nResponse Headers:\n" . print_r($e->getResponse()->getHeaders(), true);
-            }
-        }
-
-        $email .= ""
-            . "\nStack Trace:\n" . static::get_backtrace_string($e->getTrace())
-            . "\n\n";
-
-        if (is_object($e->getPrevious())) {
-            $email .= "--- Previous Exception ---\n"
-                . static::get_exception_stack_string($e->getPrevious());
-        }
-
-        return $email;
-    }
-
-
-    protected static function get_backtrace_string(array $backtrace = null)
-    {
-        $stacktrace = "";
-        if ($backtrace === null) {
-            $backtrace = debug_backtrace();
-        }
-        $skipClassList = ['Notifications'];
-
-        $callDefaults = [
-            "file" => "",
-            "line" => "",
-            "class" => "",
-            "function" => "",
-            "args" => [],
-        ];
-
-        foreach ($backtrace as $index => $call) {
-            $call = array_merge($callDefaults, $call);
-
-            $index++;
-            if (array_key_exists('class', $call) && in_array($call['class'], $skipClassList, true)) {
-                $stacktrace = $index . ": {$call['class']} - Skipped\n";
-                continue;
-            }
-
-            if (static::$projectRoot !== null) {
-                if (array_key_exists('file', $call) && (stripos($call['file'], static::$projectRoot) === 0)) {
-                    $call['file'] = str_replace(static::$projectRoot, '', $call['file']);
-                }
-            }
-
-            $args = "";
-            if (is_array($call['args'])) {
-                foreach ($call['args'] as $arg) {
-                    if ($args !== "") {
-                        $args .= ", ";
-                    }
-
-                    if (is_object($arg)) {
-                        $args .= get_class($arg);
-                    } else {
-                        if (is_array($arg)) {
-                            $args .= 'Array[]';
-                        } else {
-                            if (is_string($arg)) {
-                                $args .= '"' . $arg . '"';
-                            } else {
-                                $args .= $arg;
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Silence logged errors
-            $keys = ['class', 'function', 'file', 'line'];
-            foreach ($keys as $key) {
-                if (! array_key_exists($key, $call)) {
-                    $call[$key] = '';
-                }
-            }
-
-            $stacktrace .= $index . ":\n\t"
-                . $call['class'] . '::' . $call['function'] . "($args)"
-                . "\n\t" . $call['file'] . '(' . $call['line'] . ')'
-                . "\n";
-        }
-
-        return $stacktrace;
     }
 
 }

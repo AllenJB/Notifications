@@ -293,7 +293,7 @@ class ErrorHandler
                 }
             }
 
-            $stacktrace .= $index . ': ' . $call['class'] . '::' . $call['function'] . "($args)"
+            $stacktrace .= $index . ': ' . ($call['class'] !== '' ? $call['class'] . '::' : '') . $call['function'] . "($args)"
                 . "\n\t" . $call['file'] . '(' . $call['line'] . ')'
                 . "\n";
         }
