@@ -59,6 +59,7 @@ class ErrorHandler
 
     public static function setupCodeIgniter()
     {
+        set_exception_handler([__CLASS__, 'uncaughtException']);
         register_shutdown_function([__CLASS__, 'handleShutdown']);
     }
 
