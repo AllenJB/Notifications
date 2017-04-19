@@ -29,7 +29,7 @@ class LoggingService
 
     public function __construct(string $sentryDSN, string $appEnvironment, ?string $appVersion, array $globalTags)
     {
-        $globalTags['sapi'] = php_sapi_name();
+        $globalTags['sapi'] = PHP_SAPI;
 
         $ravenOptions = [
             'release' => $appVersion,

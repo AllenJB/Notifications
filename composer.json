@@ -30,7 +30,7 @@
   },
   "autoload": {
     "psr-4": {
-      "allenjb\\notifications\\": "src"
+      "AllenJB\\Notifications\\": "src"
     }
   }
 }

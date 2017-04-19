@@ -77,7 +77,7 @@ class LoggingServiceEvent
 
     public function setLevel(string $level) : void
     {
-        if (!in_array($level, static::$validLevels)) {
+        if (!in_array($level, static::$validLevels, true)) {
             throw new \InvalidArgumentException("Level must be one of: ". implode(', ', static::$validLevels));
         }
         $this->level = $level;

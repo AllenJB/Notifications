@@ -47,7 +47,7 @@ class ErrorHandler
         static::$projectName = $projectName;
         static::$appEnvironment = $appEnvironment;
 
-        set_error_handler(([__CLASS__, 'phpError']));
+        set_error_handler([__CLASS__, 'phpError']);
         set_exception_handler([__CLASS__, 'uncaughtException']);
         register_shutdown_function([__CLASS__, 'handleShutdown']);
     }
@@ -351,7 +351,7 @@ class ErrorHandler
             return;
         }
         $reportLevels = [E_PARSE, E_COMPILE_ERROR, E_COMPILE_WARNING, E_CORE_ERROR, E_CORE_WARNING, E_ERROR];
-        if (! in_array($lastError['type'], $reportLevels)) {
+        if (! in_array($lastError['type'], $reportLevels, true)) {
             return;
         }
 
