@@ -41,12 +41,16 @@ class ErrorHandler
     protected static $appEnvironment = "";
 
 
-    public static function setup($projectRoot, $projectName, $appEnvironment)
+    public static function init($projectRoot, $projectName, $appEnvironment)
     {
         static::$projectRoot = $projectRoot;
         static::$projectName = $projectName;
         static::$appEnvironment = $appEnvironment;
+    }
 
+
+    public static function setup()
+    {
         set_error_handler([__CLASS__, 'phpError']);
         set_exception_handler([__CLASS__, 'uncaughtException']);
         register_shutdown_function([__CLASS__, 'handleShutdown']);
