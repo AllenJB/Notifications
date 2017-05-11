@@ -51,7 +51,7 @@ class LoggingServiceEvent
     }
 
 
-    public function getTimeStamp() : \DateTimeInterface
+    public function getTimeStamp() : ?\DateTimeInterface
     {
         return $this->timestamp;
     }
