@@ -318,7 +318,7 @@ class ErrorHandler
                 . "\nRecord: " . print_r($e->csvLine, true);
         }
 
-        if (is_a($e, '\AllenJB\Sql\DatebaseQueryException') || is_a($e, '\SubTech\Sql\DatabaseQueryException')) {
+        if (is_a($e, '\AllenJB\Sql\DatabaseQueryException') || is_a($e, '\SubTech\Sql\DatabaseQueryException')) {
             $email .= "\nStatement:\n" . print_r($e->getStatement(), true);
             $email .= "\n\nValues:\n" . print_r($e->getValues(), true);
         }
@@ -361,7 +361,7 @@ class ErrorHandler
         }
 
         $sendEmail = true;
-        if (class_exists('\\SubTech\\Notifications\\LoggingService')) {
+        if (class_exists(LoggingService::class)) {
             $service = LoggingService::getInstance();
             if (is_object($service)) {
                 $exception = new \ErrorException($lastError['message'], 0, $lastError['type'], $lastError['file'], $lastError['line']);
@@ -403,7 +403,7 @@ class ErrorHandler
         }
 
         $sendEmail = true;
-        if (class_exists('\\SubTech\\Notifications\\LoggingService')) {
+        if (class_exists(LoggingService::class)) {
             $service = LoggingService::getInstance();
             if (is_object($service)) {
                 $event = new LoggingServiceEvent("Memory Limit Soft Limit Reached");
