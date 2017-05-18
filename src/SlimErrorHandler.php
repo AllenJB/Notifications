@@ -30,14 +30,15 @@ class SlimErrorHandler extends ErrorHandler
 
     public static function exceptionPsr7(\Throwable $e, RequestInterface $request, ResponseInterface $response) : ResponseInterface
     {
-        $email = static::exceptionAsString($e)
-            . "\n\nException methods:\n" . print_r(get_class_methods($e), true)
-            . "\n\nException properties:\n" . print_r(get_object_vars($e), true);
-
-        static::email($email, 'Uncaught Exception (PSR7)', false);
+        $n = new Notification('fatal', 'ErrorHandler', null, $e);
+        Notifications::any($n);
 
         if (defined('ERROR_HANDLER_LOG')) {
-            file_put_contents(ERROR_HANDLER_LOG, $email, FILE_APPEND);
+            $logMsg = static::exceptionAsString($e)
+                . "\n\nException methods:\n" . print_r(get_class_methods($e), true)
+                . "\n\nException properties:\n" . print_r(get_object_vars($e), true);
+
+            file_put_contents(ERROR_HANDLER_LOG, $logMsg, FILE_APPEND);
         }
 
 
@@ -58,7 +59,7 @@ class SlimErrorHandler extends ErrorHandler
 
         // Return a new error page response, wiping any existing response content
         // TODO View location should be configured somehow (during setup?)
-        if (in_array(static::getOutputFormat(), ['text', 'html', 'json'])) {
+        if (in_array(static::getOutputFormat(), ['text', 'html', 'json'], true)) {
             $errorResponse = new Response(500, new Headers());
             $templates = new Engine(static::$projectRoot . '/App/Views');
             $templates->loadExtension(new Escape());
