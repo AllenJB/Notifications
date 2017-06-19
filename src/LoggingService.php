@@ -35,6 +35,7 @@ class LoggingService
             'release' => $appVersion,
             'environment' => $appEnvironment,
             'tags' => $globalTags,
+            'processors' => [],
         ];
         $this->client = new \Raven_Client($sentryDSN, $ravenOptions);
 
