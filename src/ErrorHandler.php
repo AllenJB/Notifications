@@ -131,10 +131,6 @@ class ErrorHandler
             return 'cli';
         }
 
-        if (! headers_sent()) {
-            return 'html';
-        }
-
         $headers = headers_list();
         if (is_array($headers)) {
             foreach ($headers as $header) {
