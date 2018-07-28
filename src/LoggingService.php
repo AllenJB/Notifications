@@ -11,6 +11,12 @@ class LoggingService
 
     protected $user;
 
+    protected $appEnvironment;
+
+    protected $appVersion;
+
+    protected $publicDSN = null;
+
 
     /**
      * @return static|null
@@ -27,8 +33,12 @@ class LoggingService
     }
 
 
-    public function __construct(string $sentryDSN, string $appEnvironment, ?string $appVersion, array $globalTags)
+    public function __construct(string $sentryDSN, string $appEnvironment, ?string $appVersion, array $globalTags, ?string $publicDSN)
     {
+        $this->appEnvironment = $appEnvironment;
+        $this->appVersion = $appVersion;
+        $this->publicDSN = $publicDSN;
+
         $globalTags['sapi'] = PHP_SAPI;
 
         $ravenOptions = [
@@ -60,6 +70,12 @@ class LoggingService
         }
 
         $this->user = $user;
+    }
+
+
+    public function getUser() : ?array
+    {
+        return $this->user;
     }
 
 
@@ -133,6 +149,61 @@ class LoggingService
         }
 
         return $this->client->getLastEventID();
+    }
+
+
+    public function generateBrowserJS() : string
+    {
+        if (($this->publicDSN ?? "") === "") {
+            return "";
+        }
+
+        $loggingService = LoggingService::getInstance();
+        $user = null;
+        if ($loggingService !== null) {
+            $user = $loggingService->getUser();
+        }
+
+        $retval = "
+        <script src=\"//cdn.ravenjs.com/3.26.4/raven.min.js\" crossorigin=\"anonymous\"></script>
+        <script type=\"text/javascript\">
+            Raven.config('{$this->publicDSN}', {
+                release: ". $this->jsonEncode($this->appVersion) .",
+                environment: ". $this->jsonEncode($this->appEnvironment) .",
+                serverName: ". $this->jsonEncode(gethostname()) .",
+            }).install();";
+
+        if ($user !== null) {
+            $retval .= "
+                Raven.setUserContext({
+                    email: ". $this->jsonEncode($user["email"] ?? "") .",
+                    id: ". $this->jsonEncode($user["id"] ?? "") .",
+                    username: ". $this->jsonEncode($user["username"] ?? "") .",
+                });";
+        }
+
+        $retval .= "
+        </script>
+        ";
+
+        return $retval;
+    }
+
+
+    protected function jsonEncode($value, $options = JSON_HEX_AMP | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_APOS) : string
+    {
+        $retval = json_encode($value, $options);
+
+        if ($retval === false) {
+            $msg = "Failed to encode as JSON";
+            if (function_exists('json_last_error_msg')) {
+                $msg .= ': ' . json_last_error_msg();
+            }
+
+            throw new \InvalidArgumentException($msg, json_last_error());
+        }
+
+        return $retval;
     }
 
 }
