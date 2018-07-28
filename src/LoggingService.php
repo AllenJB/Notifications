@@ -33,7 +33,7 @@ class LoggingService
     }
 
 
-    public function __construct(string $sentryDSN, string $appEnvironment, ?string $appVersion, array $globalTags, ?string $publicDSN)
+    public function __construct(string $sentryDSN, string $appEnvironment, ?string $appVersion, array $globalTags, ?string $publicDSN = null)
     {
         $this->appEnvironment = $appEnvironment;
         $this->appVersion = $appVersion;
