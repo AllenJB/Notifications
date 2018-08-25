@@ -19,6 +19,8 @@ class Notifications
 
     protected static $projectRoot = null;
 
+    protected static $senderEmail = null;
+
 
     public static function setDefaultMailTransport(AbstractTransport $transport) : void
     {
@@ -41,6 +43,12 @@ class Notifications
     public static function setProjectRoot(string $rootPath) : void
     {
         static::$projectRoot = $rootPath;
+    }
+
+
+    public static function setSender(string $senderEmail) : void
+    {
+        static::$senderEmail = $senderEmail;
     }
 
 
@@ -76,7 +84,11 @@ class Notifications
             $email = new Email();
             $email->setSubject($subject);
             $email->setTextBody($msg);
-            $email->setFrom(get_current_user() . '@' . gethostname());
+            if (static::$senderEmail !== null) {
+                $email->setFrom(static::$senderEmail);
+            } else {
+                $email->setFrom(get_current_user() . '@' . gethostname());
+            }
             $email->addRecipientsTo(static::$devEmails);
 
             static::$defaultTransport->send($email);
