@@ -46,6 +46,7 @@ class LoggingService
             'environment' => $appEnvironment,
             'tags' => $globalTags,
             'processors' => [],
+            'message_limit' => 4096,
         ];
         $this->client = new \Raven_Client($sentryDSN, $ravenOptions);
 
