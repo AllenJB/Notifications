@@ -310,7 +310,7 @@ class ErrorHandler
                 . "\nRecord: " . print_r($e->csvLine, true);
         }
 
-        if (is_a($e, '\AllenJB\Sql\DatabaseQueryException') || is_a($e, '\SubTech\Sql\DatabaseQueryException')) {
+        if (is_a($e, '\AllenJB\Sql\Exception\DatabaseQueryException') || is_a($e, '\SubTech\Sql\DatabaseQueryException')) {
             $email .= "\nStatement:\n" . print_r($e->getStatement(), true);
             $email .= "\n\nValues:\n" . print_r($e->getValues(), true);
         }
@@ -481,6 +481,10 @@ class ErrorHandler
         $filepath = $e->getFile();
 
         $n = new Notification('fatal', 'ErrorHandler', null, $e);
+        if (is_a($e, '\AllenJB\Sql\Exception\DatabaseQueryException') || is_a($e, '\SubTech\Sql\DatabaseQueryException')) {
+            $n->addContext("query statement", $e->getStatement());
+            $n->addContext("query values", $e->getValues());
+        }
         Notifications::any($n);
 
         $logMsg = static::exceptionAsString($e)
