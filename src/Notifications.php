@@ -109,7 +109,7 @@ class Notifications
         if (is_object($service)) {
             if (is_object($notification->getException())) {
                 $serviceEvent = new LoggingServiceEvent($notification->getException());
-                if (!empty($msg)) {
+                if (! empty($msg)) {
                     $serviceEvent->setMessage($msg);
                 }
             } else {
@@ -117,8 +117,11 @@ class Notifications
             }
             $serviceEvent->setLevel($notification->getLevel());
             $serviceEvent->setContext($notification->getContext());
+            if (($notification->getLogger() ?? "") !== "") {
+                $serviceEvent->setLogger($notification->getLogger());
+            }
             $id = $service->send($serviceEvent);
-            if (!empty($id)) {
+            if (! empty($id)) {
                 $sendEmail = false;
             }
         }
@@ -130,10 +133,10 @@ class Notifications
                     $msg = $notification->getException()->getMessage();
                 }
             }
-            $subject = $notification->getLogger() .' '. ucwords($notification->getLevel());
+            $subject = $notification->getLogger() . ' ' . ucwords($notification->getLevel());
 
             foreach ($notification->getContext() as $key => $value) {
-                $msg .="\n\n{$key}: ". print_r($value, true);
+                $msg .= "\n\n{$key}: " . print_r($value, true);
             }
             static::email($msg, $subject, $notification->getException());
         }
