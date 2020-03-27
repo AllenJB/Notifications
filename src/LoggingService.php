@@ -61,6 +61,14 @@ class LoggingService
         ];
         $this->client = ClientBuilder::create($sentryOptions)->getClient();
 
+        foreach ($globalTags as $key => $value) {
+            if ($key === "") {
+                throw new \InvalidArgumentException("Tag key cannot be an empty string");
+            }
+            if ($value === "") {
+                throw new \InvalidArgumentException("Tag value cannot be an empty string");
+            }
+        }
         Hub::getCurrent()->configureScope(function (Scope $scope) use ($globalTags) : void {
             $scope->setTags($globalTags);
         });

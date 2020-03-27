@@ -105,19 +105,18 @@ class LoggingServiceEvent
     }
 
 
-    public function addTags($tag) : void
+    public function addTag(string $key, $value) : void
     {
-        if (!is_scalar($tag)) {
-            throw new \InvalidArgumentException("Tag must be a scalar (non-array) value");
+        if (! is_scalar($value)) {
+            throw new \InvalidArgumentException("Tag value must be a scalar (non-array) value");
         }
-        $this->tags[] = $tag;
-    }
-
-
-    public function setTags(array $tags) : void
-    {
-        $this->containsScalars($tags, "Tags");
-        $this->tags = $tags;
+        if ($key === "") {
+            throw new \InvalidArgumentException("Tag key cannot be an empty string");
+        }
+        if ($value === "") {
+            throw new \InvalidArgumentException("Tag value cannot be an empty string");
+        }
+        $this->tags[$key] = $value;
     }
 
 
