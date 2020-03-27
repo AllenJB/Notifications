@@ -21,9 +21,11 @@
     }
   ],
   "require": {
-    "php": "~7.1",
-    "sentry/sentry": "^1.5",
-    "allenjb/mailer": "^2.0"
+    "php": "~7.3",
+    "ext-json": "*",
+    "allenjb/mailer": "^2.0",
+    "php-http/guzzle6-adapter": "^2.0",
+    "sentry/sentry": "^2.3"
   },
   "suggest": {
     "allenjb/plates": "Required for Slim / PSR7 integration"

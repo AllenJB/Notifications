@@ -2,6 +2,11 @@
 
 namespace AllenJB\Notifications;
 
+use Sentry\ClientBuilder;
+use Sentry\Severity;
+use Sentry\State\Hub;
+use Sentry\State\Scope;
+
 class LoggingService
 {
 
@@ -21,34 +26,44 @@ class LoggingService
     /**
      * @return static|null
      */
-    public static function getInstance()
+    public static function getInstance() : ?LoggingService
     {
         return static::$instance;
     }
 
 
-    public static function setInstance(LoggingService $instance)
+    public static function setInstance(LoggingService $instance) : void
     {
         static::$instance = $instance;
     }
 
 
-    public function __construct(string $sentryDSN, string $appEnvironment, ?string $appVersion, array $globalTags, ?string $publicDSN = null)
-    {
+    public function __construct(
+        string $sentryDSN,
+        string $appEnvironment,
+        ?string $appVersion,
+        array $globalTags,
+        ?string $publicDSN = null
+    ) {
         $this->appEnvironment = $appEnvironment;
         $this->appVersion = $appVersion;
         $this->publicDSN = $publicDSN;
 
         $globalTags['sapi'] = PHP_SAPI;
 
-        $ravenOptions = [
+        $sentryOptions = [
             'release' => $appVersion,
             'environment' => $appEnvironment,
-            'tags' => $globalTags,
-            'processors' => [],
-            'message_limit' => 4096,
+            'dsn' => $sentryDSN,
+            'max_value_length' => 4096,
+            'send_default_pii' => true,
+            'attach_stacktrace' => true,
         ];
-        $this->client = new \Raven_Client($sentryDSN, $ravenOptions);
+        $this->client = ClientBuilder::create($sentryOptions)->getClient();
+
+        Hub::getCurrent()->configureScope(function (Scope $scope) use ($globalTags) : void {
+            $scope->setTags($globalTags);
+        });
 
         // Ensure the LoggingServiceEvent class is loaded - this should help prevent logging from failing in cases
         // where available memory might be low
@@ -56,11 +71,11 @@ class LoggingService
     }
 
 
-    public function setUser(array $user = null)
+    public function setUser(array $user = null) : void
     {
         if (is_array($user)) {
             foreach ($user as $key => $value) {
-                if (!is_scalar($value)) {
+                if (! is_scalar($value)) {
                     throw new \InvalidArgumentException("User data array may only contain scalar values and may not contain arrays ({$key})");
                 }
             }
@@ -85,71 +100,101 @@ class LoggingService
      * @param bool $includeSessionData Include session specific data ($_SESSION, $_REQUEST) - useful to exclude when parsing error logs
      * @return null|string Event ID (if successful)
      */
-    public function send(LoggingServiceEvent $event, $includeSessionData = true)
+    public function send(LoggingServiceEvent $event, $includeSessionData = true) : ?string
     {
         if ($this->client === null) {
             return null;
         }
 
-        // user is not null or empty array (we know user is either array or null)
-        if (!empty($event->getUser())) {
-            $this->client->user_context($event->getUser());
-        }
-
-        $data = [];
-        if ($event->getTimeStamp() !== null) {
-            $dt = new \DateTime($event->getTimeStamp()->format('c'));
-            $dt->setTimezone(new \DateTimeZone("UTC"));
-            $data['timestamp'] = $dt->format('Y-m-d\TH:i:s\Z');
-        }
-        if (($event->getFingerprint() ?? "") !== null) {
-            $data['fingerprint'] = ['{{default}}', $event->getFingerprint()];
-        }
-        if ($event->getLevel() !== null) {
-            $data['level'] = $event->getLevel();
-        }
-        if ($event->getLogger() !== null) {
-            $data['logger'] = $event->getLogger();
-        }
-        if (!empty($this->user)) {
-            $data['user'] = $this->user;
-        }
-        if (!empty($event->getUser())) {
-            $data['user'] = $event->getUser();
-        }
-        if (!empty($event->getTags())) {
-            $data['tags'] = $event->getTags();
-        }
-        if (!empty($event->getContext())) {
-            $data['extra'] = $event->getContext();
-        }
-        $data['extra']['_SERVER'] = $_SERVER;
-        if ($includeSessionData) {
-            $data['extra']['_REQUEST'] = $_REQUEST;
-            if (isset($_SESSION)) {
-                $data['extra']['_SESSION'] = $_SESSION;
+        $lastEventId = null;
+        Hub::getCurrent()->withScope(function (Scope $scope) use ($event, $includeSessionData, &$lastEventId) : void {
+            // user is not null or empty array (we know user is either array or null)
+            if (! empty($this->user)) {
+                $scope->setUser($this->user);
             }
-        }
-
-        if ($event->getException() !== null) {
-            if ($event->getMessage() !== null) {
-                $data['message'] = $event->getMessage();
+            if (! empty($event->getUser())) {
+                $scope->setUser($event->getUser());
             }
-            $this->client->captureException($event->getException(), $data);
-        } else {
-            $includeStackTrace = !$event->getExcludeStackTrace();
-            $this->client->captureMessage($event->getMessage(), [], $data, $includeStackTrace);
-        }
 
-        $lastError = $this->client->getLastError();
-        if ($lastError !== null) {
-            $msg = "Logging Service Error"
-                ."\nMessage: ". $lastError;
-            Notifications::email($msg, "Error Logging Service Error");
-            return null;
-        }
+            $data = [];
+            if ($event->getTimeStamp() !== null) {
+                $dt = new \DateTimeImmutable($event->getTimeStamp()->format('c'));
+                $dt = $dt->setTimezone(new \DateTimeZone("UTC"));
+                $data['timestamp'] = $dt->format('Y-m-d\TH:i:s\Z');
+            }
+            if (($event->getFingerprint() ?? "") !== null) {
+                $data['fingerprint'] = ['{{default}}', $event->getFingerprint()];
+            }
 
-        return $this->client->getLastEventID();
+            $level = Severity::info();
+            if ($event->getLevel() !== null) {
+                $levelStr = $event->getLevel();
+                switch ($levelStr) {
+                    case 'debug':
+                        $level = Severity::debug();
+                        break;
+
+                    case 'info':
+                        $level = Severity::info();
+                        break;
+
+                    case 'warning':
+                        $level = Severity::warning();
+                        break;
+
+                    case 'error':
+                        $level = Severity::error();
+                        break;
+
+                    case 'fatal':
+                        $level = Severity::fatal();
+                        break;
+
+                    default:
+                        trigger_error("Unhandled event level: " . $levelStr, E_USER_WARNING);
+                        break;
+                }
+                $scope->setLevel($level);
+            }
+            if ($event->getLogger() !== null) {
+                $data['logger'] = $event->getLogger();
+            }
+            $tags = $event->getTags();
+            if (! empty($tags)) {
+                foreach ($tags as $key => $value) {
+                    $scope->setTag($key, $value);
+                }
+            }
+            if (! empty($event->getContext())) {
+                $scope->setExtras($event->getContext());
+            }
+            $scope->setExtra('_SERVER', $_SERVER);
+            if ($includeSessionData) {
+                $scope->setExtra('_REQUEST', $_REQUEST);
+                if (isset($_SESSION)) {
+                    $scope->setExtra('_SESSION', $_SESSION);
+                }
+            }
+
+            if ($event->getException() !== null) {
+                $data['exception'] = $event->getException();
+                $this->client->getOptions()->setAttachStacktrace(false);
+            } elseif (! $event->getExcludeStackTrace()) {
+                $this->client->getOptions()->setAttachStacktrace(false);
+            }
+
+            $data["message"] = $event->getMessage();
+            $data["level"] = $level;
+            try {
+                $lastEventId = $this->client->captureEvent($data, $scope);
+            } catch (\Exception $e) {
+                Notifications::email($e->getMessage(), "Error Logging Service Error", $e);
+            }
+
+            $this->client->getOptions()->setAttachStacktrace(true);
+        });
+
+        return $lastEventId;
     }
 
 
@@ -166,20 +211,24 @@ class LoggingService
         }
 
         $retval = "
-        <script src=\"//cdn.ravenjs.com/3.26.4/raven.min.js\" crossorigin=\"anonymous\"></script>
+        <script
+          src=\"https://browser.sentry-cdn.com/5.11.0/bundle.min.js\"
+          integrity=\"sha384-jbFinqIbKkHNg+QL+yxB4VrBC0EAPTuaLGeRT0T+NfEV89YC6u1bKxHLwoo+/xxY\"
+          crossorigin=\"anonymous\"></script>
         <script type=\"text/javascript\">
-            Raven.config('{$this->publicDSN}', {
-                release: ". $this->jsonEncode($this->appVersion) .",
-                environment: ". $this->jsonEncode($this->appEnvironment) .",
-                serverName: ". $this->jsonEncode(gethostname()) .",
-            }).install();";
+            Sentry.init({
+                dsn: " . $this->jsonEncode($this->publicDSN) . ",
+                release: " . $this->jsonEncode($this->appVersion) . ",
+                environment: " . $this->jsonEncode($this->appEnvironment) . ",
+                sever_name: " . $this->jsonEncode(gethostname()) . ",
+            });";
 
         if ($user !== null) {
             $retval .= "
-                Raven.setUserContext({
-                    email: ". $this->jsonEncode($user["email"] ?? "") .",
-                    id: ". $this->jsonEncode($user["id"] ?? "") .",
-                    username: ". $this->jsonEncode($user["username"] ?? "") .",
+                Sentry.setUser({
+                    email: " . $this->jsonEncode($user["email"] ?? "") . ",
+                    id: " . $this->jsonEncode($user["id"] ?? "") . ",
+                    username: " . $this->jsonEncode($user["username"] ?? "") . ",
                 });";
         }
 
@@ -191,8 +240,10 @@ class LoggingService
     }
 
 
-    protected function jsonEncode($value, $options = JSON_HEX_AMP | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_APOS) : string
-    {
+    protected function jsonEncode(
+        $value,
+        $options = JSON_HEX_AMP | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_APOS
+    ) : string {
         $retval = json_encode($value, $options);
 
         if ($retval === false) {
