@@ -130,7 +130,7 @@ class LoggingService
                 $dt = $dt->setTimezone(new \DateTimeZone("UTC"));
                 $data['timestamp'] = $dt->format('Y-m-d\TH:i:s\Z');
             }
-            if (($event->getFingerprint() ?? "") !== null) {
+            if (($event->getFingerprint() ?? "") !== "") {
                 $data['fingerprint'] = ['{{default}}', $event->getFingerprint()];
             }
 
@@ -220,8 +220,8 @@ class LoggingService
 
         $retval = "
         <script
-          src=\"https://browser.sentry-cdn.com/5.11.0/bundle.min.js\"
-          integrity=\"sha384-jbFinqIbKkHNg+QL+yxB4VrBC0EAPTuaLGeRT0T+NfEV89YC6u1bKxHLwoo+/xxY\"
+          src=\"https://browser.sentry-cdn.com/5.15.4/bundle.min.js\"
+          integrity=\"sha384-Nrg+xiw+qRl3grVrxJtWazjeZmUwoSt0FAVsbthlJ5OMpx0G08bqIq3b/v0hPjhB\"
           crossorigin=\"anonymous\"></script>
         <script type=\"text/javascript\">
             Sentry.init({
