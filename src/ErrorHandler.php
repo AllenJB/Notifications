@@ -150,7 +150,7 @@ class ErrorHandler
                         continue;
                     }
 
-                    if (in_array($type,$htmlTypes, true)) {
+                    if (in_array($type, $htmlTypes, true)) {
                         return "html";
                     }
                     if (in_array($type, $jsonTypes, true)) {
@@ -467,7 +467,7 @@ class ErrorHandler
      */
     public static function phpError(int $severity, string $message, string $filepath = null, int $line = null): bool
     {
-        if (($severity & error_reporting()) !== $severity) {
+        if (! (error_reporting() & $severity)) {
             return true;
         }
 
