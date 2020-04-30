@@ -3,8 +3,8 @@
 namespace AllenJB\Notifications;
 
 use Sentry\ClientBuilder;
+use Sentry\SentrySdk;
 use Sentry\Severity;
-use Sentry\State\Hub;
 use Sentry\State\Scope;
 
 class LoggingService
@@ -69,7 +69,7 @@ class LoggingService
                 throw new \InvalidArgumentException("Tag value cannot be an empty string");
             }
         }
-        Hub::getCurrent()->configureScope(function (Scope $scope) use ($globalTags) : void {
+        SentrySdk::getCurrentHub()->configureScope(function (Scope $scope) use ($globalTags) : void {
             $scope->setTags($globalTags);
         });
 
@@ -115,7 +115,7 @@ class LoggingService
         }
 
         $lastEventId = null;
-        Hub::getCurrent()->withScope(function (Scope $scope) use ($event, $includeSessionData, &$lastEventId) : void {
+        SentrySdk::getCurrentHub()->withScope(function (Scope $scope) use ($event, $includeSessionData, &$lastEventId) : void {
             // user is not null or empty array (we know user is either array or null)
             if (! empty($this->user)) {
                 $scope->setUser($this->user);
