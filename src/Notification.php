@@ -35,7 +35,7 @@ class Notification
     }
 
 
-    public function addContext(string $key, $value)
+    public function addContext(string $key, $value): void
     {
         $this->context[$key] = $value;
     }
@@ -47,7 +47,7 @@ class Notification
     }
 
 
-    public function setLevel(string $level)
+    public function setLevel(string $level): void
     {
         if (!in_array($level, static::$validLevels, true)) {
             throw new \InvalidArgumentException("Level must be one of: ". implode(', ', static::$validLevels));

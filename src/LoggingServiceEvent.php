@@ -45,7 +45,7 @@ class LoggingServiceEvent
     }
 
 
-    public function setTimeStamp(\DateTimeInterface $dt)
+    public function setTimeStamp(\DateTimeInterface $dt): void
     {
         $this->timestamp = $dt;
     }

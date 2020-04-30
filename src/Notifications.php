@@ -106,7 +106,7 @@ class Notifications
         $sendEmail = true;
         $service = LoggingService::getInstance();
         $msg = $notification->getMessage();
-        if (is_object($service)) {
+        if ($service !== null) {
             if (is_object($notification->getException())) {
                 $serviceEvent = new LoggingServiceEvent($notification->getException());
                 if (! empty($msg)) {
