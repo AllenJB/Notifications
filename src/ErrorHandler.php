@@ -30,7 +30,7 @@ class ErrorHandler
         E_COMPILE_WARNING => 'Compile Warning',
         E_USER_WARNING => 'User Warning',
         E_USER_NOTICE => 'User Notice',
-        E_STRICT => 'Strict Notice'
+        E_STRICT => 'Strict Notice',
     ];
 
 
@@ -41,7 +41,7 @@ class ErrorHandler
     protected static $appEnvironment = "";
 
 
-    public static function setup(string $projectRoot, string $projectName, string $appEnvironment) : void
+    public static function setup(string $projectRoot, string $projectName, string $appEnvironment): void
     {
         static::$projectRoot = $projectRoot;
         static::$projectName = $projectName;
@@ -53,18 +53,19 @@ class ErrorHandler
     }
 
 
-    public static function setupCodeIgniter() : void
+    public static function setupNoHandlers(string $projectRoot, string $projectName, string $appEnvironment): void
     {
-        set_exception_handler([__CLASS__, 'uncaughtException']);
-        register_shutdown_function([__CLASS__, 'handleShutdown']);
+        static::$projectRoot = $projectRoot;
+        static::$projectName = $projectName;
+        static::$appEnvironment = $appEnvironment;
     }
 
 
-    protected static function iniToBytes(string $iniValue) : int
+    protected static function iniToBytes(string $iniValue): int
     {
         $iniValue = trim($iniValue);
         $last = strtolower(substr($iniValue, -1));
-        if (!preg_match('/^[0-9]$/', $last)) {
+        if (! preg_match('/^[0-9]$/', $last)) {
             $iniValue = substr($iniValue, 0, -1);
         }
         switch ($last) {
@@ -81,7 +82,7 @@ class ErrorHandler
     }
 
 
-    protected static function email(string $msg, string $subject, bool $addStackTrace = true) : void
+    protected static function email(string $msg, string $subject, bool $addStackTrace = true): void
     {
         // We provide a fallback value for DEVELOPER_EMAILS just in case it's not defined for any reason
         $emails = static::$devEmails;
@@ -97,11 +98,11 @@ class ErrorHandler
 
         if ($addStackTrace) {
             $stacktrace = static::stackTraceString();
-            $msg .= "\n\nStack trace:\n". $stacktrace;
+            $msg .= "\n\nStack trace:\n" . $stacktrace;
         }
 
         if (defined('APP_VERSION')) {
-            $msg .= "\n\nApp Version: ". APP_VERSION;
+            $msg .= "\n\nApp Version: " . APP_VERSION;
         }
 
         $msg .= "\n\n"
@@ -116,7 +117,8 @@ class ErrorHandler
         }
 
         $msg .= "\n\n--- EOM ---\n";
-        $subject = $subject . (static::$appEnvironment !== 'production' ? ' - ' . static::$appEnvironment : '') . ' - ' . static::$projectName;
+        $subject .= (static::$appEnvironment !== 'production' ? ' - ' . static::$appEnvironment : '')
+            . ' - ' . static::$projectName;
         @mail($emails, $subject, $msg);
     }
 
@@ -125,10 +127,37 @@ class ErrorHandler
      * @return string
      * We check for a Content-Type header, and only if one isn't found (or is found and appears to be HTML) do we assume HTML
      */
-    protected static function getOutputFormat() : string
+    protected static function getOutputFormat(): string
     {
         if (static::isCliRequest()) {
             return 'cli';
+        }
+
+        if (isset($_SERVER["HTTP_ACCEPT"]) && is_string($_SERVER["HTTP_ACCEPT"])) {
+            $htmlTypes = [
+                "text/html",
+                "application/xhtml+xml",
+            ];
+            $jsonTypes = [
+                "application/json",
+            ];
+
+            $qParts = explode(";", $_SERVER["HTTP_ACCEPT"]);
+            foreach ($qParts as $qPart) {
+                $types = explode(",", $qPart);
+                foreach ($types as $type) {
+                    if (strpos($type, "q=") === 0) {
+                        continue;
+                    }
+
+                    if (in_array($type,$htmlTypes, true)) {
+                        return "html";
+                    }
+                    if (in_array($type, $jsonTypes, true)) {
+                        return "json";
+                    }
+                }
+            }
         }
 
         $headers = headers_list();
@@ -145,9 +174,9 @@ class ErrorHandler
                 if ($key === 'Content-Type') {
                     if (stripos($value, 'application/json') !== false) {
                         return 'json';
-                    } else if (stripos($value, 'text/html') !== false) {
+                    } elseif (stripos($value, 'text/html') !== false) {
                         return 'html';
-                    } else if (stripos($value, 'text/') !== false) {
+                    } elseif (stripos($value, 'text/') !== false) {
                         return 'text';
                     } else {
                         return 'other';
@@ -160,13 +189,13 @@ class ErrorHandler
     }
 
 
-    protected static function isCliRequest() : bool
+    protected static function isCliRequest(): bool
     {
         return (PHP_SAPI === 'cli' || defined('STDIN'));
     }
 
 
-    protected static function html(string $value) : string
+    protected static function html(string $value): string
     {
         return htmlspecialchars($value, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
     }
@@ -175,7 +204,7 @@ class ErrorHandler
     /**
      * Display a generic error page
      */
-    protected static function displayError() : void
+    protected static function displayError(): void
     {
         $requestUri = ($_SERVER['REQUEST_URI'] ?? '');
         $doNotRedirect = (strpos($requestUri, '/error') === 0);
@@ -219,7 +248,6 @@ class ErrorHandler
             default:
                 // Do nothing
                 break;
-
         }
     }
 
@@ -229,7 +257,7 @@ class ErrorHandler
      * @param array $backtrace Backtrace generated by debug_backtrace()
      * @return string
      */
-    public static function stackTraceString(array $backtrace = null) : string
+    public static function stackTraceString(array $backtrace = null): string
     {
         $stacktrace = "";
         if ($backtrace === null) {
@@ -264,13 +292,13 @@ class ErrorHandler
 
                     if (is_object($arg)) {
                         $args .= get_class($arg);
-                    } else if (is_array($arg)) {
+                    } elseif (is_array($arg)) {
                         $args .= 'Array[]';
-                    } else if (is_string($arg)) {
+                    } elseif (is_string($arg)) {
                         $args .= '"' . $arg . '"';
-                    } else if (is_bool($arg)) {
+                    } elseif (is_bool($arg)) {
                         $args .= ($arg ? 'TRUE' : 'FALSE');
-                    } else if ($arg === null) {
+                    } elseif ($arg === null) {
                         $args .= 'NULL';
                     } else {
                         $args .= $arg;
@@ -294,7 +322,7 @@ class ErrorHandler
     }
 
 
-    public static function exceptionAsString(\Throwable $e) : string
+    public static function exceptionAsString(\Throwable $e): string
     {
         $email = "Message: {$e->getMessage()}"
             . "\nType: " . get_class($e)
@@ -310,7 +338,10 @@ class ErrorHandler
                 . "\nRecord: " . print_r($e->csvLine, true);
         }
 
-        if (is_a($e, '\AllenJB\Sql\Exception\DatabaseQueryException') || is_a($e, '\SubTech\Sql\DatabaseQueryException')) {
+        if (is_a($e, '\AllenJB\Sql\Exception\DatabaseQueryException') || is_a(
+                $e,
+                '\SubTech\Sql\DatabaseQueryException'
+            )) {
             $email .= "\nStatement:\n" . print_r($e->getStatement(), true);
             $email .= "\n\nValues:\n" . print_r($e->getValues(), true);
         }
@@ -331,7 +362,7 @@ class ErrorHandler
     }
 
 
-    public static function handleShutdown() : void
+    public static function handleShutdown(): void
     {
         static::handleShutdownError();
         static::handleShutdownMemory();
@@ -341,7 +372,7 @@ class ErrorHandler
     /**
      * Note: We explicitly avoid using outside code as we may have hit memory limit and have very little to work with
      */
-    protected static function handleShutdownError() : void
+    protected static function handleShutdownError(): void
     {
         $lastError = error_get_last();
         if (! (is_array($lastError) && array_key_exists('type', $lastError))) {
@@ -355,12 +386,18 @@ class ErrorHandler
         $sendEmail = true;
         if (class_exists(LoggingService::class)) {
             $service = LoggingService::getInstance();
-            if (is_object($service)) {
-                $exception = new \ErrorException($lastError['message'], 0, $lastError['type'], $lastError['file'], $lastError['line']);
+            if ($service !== null) {
+                $exception = new \ErrorException(
+                    $lastError['message'],
+                    0,
+                    $lastError['type'],
+                    $lastError['file'],
+                    $lastError['line']
+                );
                 $event = new LoggingServiceEvent($exception);
                 $event->setLogger('shutdown_handler');
                 $id = $service->send($event);
-                if (!empty($id)) {
+                if (! empty($id)) {
                     $sendEmail = false;
                 }
             }
@@ -382,7 +419,7 @@ class ErrorHandler
      * Check the amount of memory used by the request and report if it's close to the memory limit
      * Note: We explicitly avoid using outside code as we may be near memory limit
      */
-    protected static function handleShutdownMemory() : void
+    protected static function handleShutdownMemory(): void
     {
         $warnPercentage = 0.75;
         $memoryLimit = ini_get('memory_limit');
@@ -397,16 +434,18 @@ class ErrorHandler
         $sendEmail = true;
         if (class_exists(LoggingService::class)) {
             $service = LoggingService::getInstance();
-            if (is_object($service)) {
+            if ($service !== null) {
                 $event = new LoggingServiceEvent("Memory Limit Soft Limit Reached");
                 $event->setLevel('warning');
-                $event->setContext([
-                    'soft_limit' => number_format($softLimitBytes),
-                    'memory_usage' => number_format($memoryUsed),
-                ]);
+                $event->setContext(
+                    [
+                        'soft_limit' => number_format($softLimitBytes),
+                        'memory_usage' => number_format($memoryUsed),
+                    ]
+                );
                 $event->setLogger('shutdown_handler');
                 $id = $service->send($event);
-                if (!empty($id)) {
+                if (! empty($id)) {
                     $sendEmail = false;
                 }
             }
@@ -415,7 +454,7 @@ class ErrorHandler
         if ($sendEmail) {
             $msg = "Memory Soft Limit Reached"
                 . "\nAll values are in bytes"
-                . "\nMemory Limit: " . number_format($memoryLimitBytes) .' ('. $memoryLimit .')'
+                . "\nMemory Limit: " . number_format($memoryLimitBytes) . ' (' . $memoryLimit . ')'
                 . "\nSoft Limit:   " . number_format($softLimitBytes)
                 . "\nMemory Usage: " . number_format($memoryUsed);
             static::email($msg, 'Memory Soft Limit Reached');
@@ -426,8 +465,12 @@ class ErrorHandler
     /*
      * Native PHP error handler
      */
-    public static function phpError(int $severity, string $message, string $filepath = null, int $line = null, array $context = []) : bool
+    public static function phpError(int $severity, string $message, string $filepath = null, int $line = null): bool
     {
+        if (($severity & error_reporting()) !== $severity) {
+            return true;
+        }
+
         $severityDesc = (static::$levels[$severity] ?? $severity);
         // Some errors can be displayed inline and attempt to continue the code
         $inlineLevels = [E_STRICT, E_NOTICE, E_WARNING, E_USER_NOTICE, E_USER_WARNING];
@@ -462,17 +505,17 @@ class ErrorHandler
                 . "\n\nSTACK TRACE:\n" . $stacktrace
                 . "\n";
             print $msg;
-        } else if (! $isInlineError) {
+        } elseif (! $isInlineError) {
             static::displayError();
             exit(1);
         }
 
-        // Invoike the standard PHP error handler
+        // Invoke the standard PHP error handler
         return false;
     }
 
 
-    public static function uncaughtException(\Throwable $e) : void
+    public static function uncaughtException(\Throwable $e): void
     {
         // Set variables used in php_error template
         $stacktrace = $e->getTraceAsString();
@@ -481,7 +524,10 @@ class ErrorHandler
         $filepath = $e->getFile();
 
         $n = new Notification('fatal', 'ErrorHandler', null, $e);
-        if (is_a($e, '\AllenJB\Sql\Exception\DatabaseQueryException') || is_a($e, '\SubTech\Sql\DatabaseQueryException')) {
+        if (is_a($e, '\AllenJB\Sql\Exception\DatabaseQueryException') || is_a(
+                $e,
+                '\SubTech\Sql\DatabaseQueryException'
+            )) {
             $n->addContext("query statement", $e->getStatement());
             $n->addContext("query values", $e->getValues());
         }
@@ -504,6 +550,34 @@ class ErrorHandler
         }
 
         exit(1);
+    }
+
+
+    /**
+     * Return a list of all error levels, showing whether they're enabled or not, for a given error_reporting value
+     * @param int $errorReporting
+     * @return bool[]
+     */
+    protected static function enabledLevels(int $errorReporting): array
+    {
+        return [
+            'E_ERROR' => (($errorReporting & E_ERROR) === E_ERROR),
+            'E_WARNING' => (($errorReporting & E_WARNING) === E_WARNING),
+            'E_PARSE' => (($errorReporting & E_PARSE) === E_PARSE),
+            'E_NOTICE' => (($errorReporting & E_NOTICE) === E_NOTICE),
+            'E_CORE_ERROR' => (($errorReporting & E_CORE_ERROR) === E_CORE_ERROR),
+            'E_CORE_WARNING' => (($errorReporting & E_CORE_WARNING) === E_CORE_WARNING),
+            'E_COMPILE_ERROR' => (($errorReporting & E_COMPILE_ERROR) === E_COMPILE_ERROR),
+            'E_COMPILE_WARNING' => (($errorReporting & E_COMPILE_WARNING) === E_COMPILE_WARNING),
+            'E_USER_ERROR' => (($errorReporting & E_USER_ERROR) === E_USER_ERROR),
+            'E_USER_WARNING' => (($errorReporting & E_USER_WARNING) === E_USER_WARNING),
+            'E_USER_NOTICE' => (($errorReporting & E_USER_NOTICE) === E_USER_NOTICE),
+            'E_STRICT' => (($errorReporting & E_STRICT) === E_STRICT),
+            'E_RECOVERABLE_ERROR' => (($errorReporting & E_RECOVERABLE_ERROR) === E_RECOVERABLE_ERROR),
+            'E_DEPRECATED' => (($errorReporting & E_DEPRECATED) === E_DEPRECATED),
+            'E_USER_DEPRECATED' => (($errorReporting & E_USER_DEPRECATED) === E_USER_DEPRECATED),
+            'E_ALL' => (($errorReporting & E_ALL) === E_ALL),
+        ];
     }
 
 }
