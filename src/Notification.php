@@ -49,6 +49,9 @@ class Notification
 
     public function setLevel(string $level): void
     {
+        if ($level === "warn") {
+            $level = "warning";
+        }
         if (!in_array($level, static::$validLevels, true)) {
             throw new \InvalidArgumentException("Level must be one of: ". implode(', ', static::$validLevels));
         }
