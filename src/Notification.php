@@ -25,8 +25,13 @@ class Notification
      * @param \Throwable|null $exception Error or Exception to attach to this notification
      * @param mixed[] $context Additional context information (key/value pairs)
      */
-    public function __construct(string $level, string $loggerName, ?string $optionalMessage, \Throwable $exception = null, array $context = [])
-    {
+    public function __construct(
+        string $level,
+        string $loggerName,
+        ?string $optionalMessage,
+        \Throwable $exception = null,
+        array $context = []
+    ) {
         $this->setLevel($level);
         $this->message = $optionalMessage;
         $this->exception = $exception;
@@ -52,32 +57,32 @@ class Notification
         if ($level === "warn") {
             $level = "warning";
         }
-        if (!in_array($level, static::$validLevels, true)) {
-            throw new \InvalidArgumentException("Level must be one of: ". implode(', ', static::$validLevels));
+        if (! in_array($level, static::$validLevels, true)) {
+            throw new \InvalidArgumentException("Level must be one of: " . implode(', ', static::$validLevels));
         }
         $this->level = $level;
     }
 
 
-    public function getMessage() : ?string
+    public function getMessage(): ?string
     {
         return $this->message;
     }
 
 
-    public function getLogger() : ?string
+    public function getLogger(): ?string
     {
         return $this->logger;
     }
 
 
-    public function getException() : ?\Throwable
+    public function getException(): ?\Throwable
     {
         return $this->exception;
     }
 
 
-    public function getContext() : array
+    public function getContext(): array
     {
         return $this->context;
     }

@@ -13,6 +13,7 @@ class TriggerError
     }
 
 
+    /** @noinspection PhpExpressionResultUnusedInspection */
     public static function warning(): void
     {
         $v = null;
@@ -50,9 +51,11 @@ class TriggerError
      */
     public static function stackOverflow(): void
     {
-        function callSelf() {
+        function callSelf()
+        {
             callSelf();
         }
+
         callSelf();
     }
 

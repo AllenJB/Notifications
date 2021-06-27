@@ -8,56 +8,53 @@ use AllenJB\Mailer\Transport\AbstractTransport;
 class Notifications
 {
 
-    /**
-     * @var null|AbstractTransport
-     */
-    protected static $defaultTransport = null;
+    protected static ?AbstractTransport $defaultTransport = null;
 
-    protected static $devEmails = [];
+    protected static array $devEmails = [];
 
-    protected static $projectName = "";
+    protected static string $projectName = "";
 
-    protected static $projectRoot = null;
+    protected static ?string $senderEmail = null;
 
-    protected static $senderEmail = null;
+    protected static ?LoggingServiceInterface $loggingService = null;
 
 
-    public static function setDefaultMailTransport(AbstractTransport $transport) : void
+    public static function setDefaultMailTransport(?AbstractTransport $transport): void
     {
         static::$defaultTransport = $transport;
     }
 
 
-    public static function setDeveloperEmails(array $emails) : void
+    public static function setLoggingService(?LoggingServiceInterface $loggingService): void
+    {
+        static::$loggingService = $loggingService;
+    }
+
+
+    public static function setDeveloperEmails(array $emails): void
     {
         static::$devEmails = $emails;
     }
 
 
-    public static function setProjectName(string $projectName) : void
+    public static function setProjectName(string $projectName): void
     {
         static::$projectName = $projectName;
     }
 
 
-    public static function setProjectRoot(string $rootPath) : void
-    {
-        static::$projectRoot = $rootPath;
-    }
-
-
-    public static function setSender(string $senderEmail) : void
+    public static function setSender(string $senderEmail): void
     {
         static::$senderEmail = $senderEmail;
     }
 
 
-    public static function email(string $msg, string $subject, \Throwable $exception = null) : void
+    public static function emailSimple(string $msg, string $subject, \Throwable $exception = null): void
     {
         $msg = "Automated Notification:\n" . $msg;
 
         if (is_object($exception) && (($exception instanceof \Throwable) || ($exception instanceof \Exception))) {
-            $msg .= "\n\n" . ErrorHandler::exceptionAsString($exception);
+            $msg .= "\n\n" . static::exceptionAsString($exception);
         } else {
             $msg .= "\n\nBacktrace:\n" . ErrorHandler::stackTraceString();
         }
@@ -96,17 +93,72 @@ class Notifications
     }
 
 
+    public static function email(Notification $notification): void
+    {
+        if (count(static::$devEmails) < 1) {
+            return;
+        }
+
+        $msg = "Automated Notification:\n" . ($notification->getMessage() ?? "");
+
+        $exception = $notification->getException();
+        if ($exception !== null) {
+            if ($notification->getMessage() !== null) {
+                $msg .= "\n";
+            }
+            $msg .= $exception->getMessage();
+        }
+
+        foreach ($notification->getContext() as $key => $value) {
+            $msg .= "\n\n{$key}: " . print_r($value, true);
+        }
+
+        if ($exception !== null) {
+            $msg .= "\n\n" . static::exceptionAsString($exception);
+        } else {
+            $msg .= "\n\nBacktrace:\n" . ErrorHandler::stackTraceString();
+        }
+
+        $msg .= "\n\n_SERVER: " . print_r($_SERVER, true);
+
+        $requestDump = print_r($_REQUEST, true);
+        if (strlen($requestDump) < 512) {
+            $msg .= "\n\n_REQUEST:\n" . $requestDump;
+        } else {
+            $msg .= "\n\n_REQUEST: (excluded due to size)";
+        }
+        $msg .= "\n\n--- EOM ---\n";
+        $subject =  $notification->getMessage() ." :: ". static::$projectName ." Notification";
+
+        if (static::$defaultTransport === null) {
+            $emails = implode(',', static::$devEmails);
+            mail($emails, $subject, $msg);
+            return;
+        }
+
+        $email = new Email();
+        $email->setSubject($subject);
+        $email->setTextBody($msg);
+        if (static::$senderEmail !== null) {
+            $email->setFrom(static::$senderEmail);
+        } else {
+            $email->setFrom(get_current_user() . '@' . gethostname());
+        }
+        $email->addRecipientsTo(static::$devEmails);
+
+        static::$defaultTransport->send($email);
+    }
+
+
     /**
      * Send a notification by the prefered channel
      *
      * @param Notification $notification
      */
-    public static function any(Notification $notification) : void
+    public static function any(Notification $notification): void
     {
-        $sendEmail = true;
-        $service = LoggingService::getInstance();
-        $msg = $notification->getMessage();
-        if ($service !== null) {
+        if (static::$loggingService !== null) {
+            $msg = $notification->getMessage();
             if (is_object($notification->getException())) {
                 $serviceEvent = new LoggingServiceEvent($notification->getException());
                 if (! empty($msg)) {
@@ -120,26 +172,32 @@ class Notifications
             if (($notification->getLogger() ?? "") !== "") {
                 $serviceEvent->setLogger($notification->getLogger());
             }
-            $id = $service->send($serviceEvent);
-            if (! empty($id)) {
-                $sendEmail = false;
+            $success = static::$loggingService->send($serviceEvent);
+            if ($success) {
+                return;
             }
         }
 
-        if ($sendEmail) {
-            if (empty($msg)) {
-                $msg = '';
-                if (is_object($notification->getException())) {
-                    $msg = $notification->getException()->getMessage();
-                }
-            }
-            $subject = $notification->getLogger() . ' ' . ucwords($notification->getLevel());
+        static::email($notification);
+    }
 
-            foreach ($notification->getContext() as $key => $value) {
-                $msg .= "\n\n{$key}: " . print_r($value, true);
-            }
-            static::email($msg, $subject, $notification->getException());
+
+    public static function exceptionAsString(\Throwable $e): string
+    {
+        $email = "Message: {$e->getMessage()}"
+            . "\nType: " . get_class($e)
+            . "\nCode: " . $e->getCode()
+            . "\nLine: " . $e->getLine()
+            . "\nFile: " . $e->getFile()
+            . "\nStack Trace:\n" . $e->getTraceAsString()
+            . "\n\n";
+
+        if (is_object($e->getPrevious())) {
+            $email .= "--- Previous Exception ---\n"
+                . static::exceptionAsString($e->getPrevious());
         }
+
+        return $email;
     }
 
 }

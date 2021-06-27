@@ -40,27 +40,31 @@ class ErrorHandler
 
     protected static $appEnvironment = "";
 
+    protected static NotificationFactoryInterface $notificationFactory;
 
-    public static function setup(string $projectRoot, string $projectName, string $appEnvironment): void
-    {
+
+    public static function setup(
+        string $projectRoot,
+        string $projectName,
+        string $appEnvironment,
+        NotificationFactoryInterface $notificationFactory
+    ): void {
         static::$projectRoot = $projectRoot;
         static::$projectName = $projectName;
         static::$appEnvironment = $appEnvironment;
+        static::$notificationFactory = $notificationFactory;
+    }
 
+
+    public static function setupHandlers(): void
+    {
         set_error_handler([__CLASS__, 'phpError']);
         set_exception_handler([__CLASS__, 'uncaughtException']);
         register_shutdown_function([__CLASS__, 'handleShutdown']);
     }
 
 
-    public static function setupNoHandlers(string $projectRoot, string $projectName, string $appEnvironment): void
-    {
-        static::$projectRoot = $projectRoot;
-        static::$projectName = $projectName;
-        static::$appEnvironment = $appEnvironment;
-    }
-
-
+    /** @noinspection PhpMissingBreakStatementInspection */
     protected static function iniToBytes(string $iniValue): int
     {
         $iniValue = trim($iniValue);
@@ -82,49 +86,7 @@ class ErrorHandler
     }
 
 
-    protected static function email(string $msg, string $subject, bool $addStackTrace = true): void
-    {
-        // We provide a fallback value for DEVELOPER_EMAILS just in case it's not defined for any reason
-        $emails = static::$devEmails;
-        if (defined('DEVELOPER_EMAILS')) {
-            $emails = DEVELOPER_EMAILS;
-        }
-        if (count($emails) < 1) {
-            return;
-        }
-        if (is_array($emails)) {
-            $emails = implode(',', $emails);
-        }
-
-        if ($addStackTrace) {
-            $stacktrace = static::stackTraceString();
-            $msg .= "\n\nStack trace:\n" . $stacktrace;
-        }
-
-        if (defined('APP_VERSION')) {
-            $msg .= "\n\nApp Version: " . APP_VERSION;
-        }
-
-        $msg .= "\n\n"
-            . "_SESSION:\n" . (isset($_SESSION) ? print_r($_SESSION, true) : 'UNSET') . "\n\n"
-            . "_SERVER:\n" . print_r($_SERVER, true) . "\n\n";
-
-        $requestDump = print_r($_REQUEST, true);
-        if (strlen($requestDump) < static::$requestSizeLimit) {
-            $msg .= "\n\n_REQUEST:\n" . $requestDump;
-        } else {
-            $msg .= "\n\n_REQUEST: (excluded due to size)";
-        }
-
-        $msg .= "\n\n--- EOM ---\n";
-        $subject .= (static::$appEnvironment !== 'production' ? ' - ' . static::$appEnvironment : '')
-            . ' - ' . static::$projectName;
-        @mail($emails, $subject, $msg);
-    }
-
-
     /**
-     * @return string
      * We check for a Content-Type header, and only if one isn't found (or is found and appears to be HTML) do we assume HTML
      */
     protected static function getOutputFormat(): string
@@ -211,7 +173,7 @@ class ErrorHandler
 
         switch (static::getOutputFormat()) {
             case 'html':
-                if (! (headers_sent() || $doNotRedirect)) {
+                if (! ($doNotRedirect || headers_sent())) {
                     header("Location: /error");
                     print " ";
                 } else {
@@ -232,7 +194,7 @@ class ErrorHandler
                 break;
 
             case 'text':
-                if (! (headers_sent() || $doNotRedirect)) {
+                if (! ($doNotRedirect || headers_sent())) {
                     header("Location: /error");
                     print " ";
                 } else {
@@ -277,10 +239,11 @@ class ErrorHandler
 
             $call = array_merge($callDefaults, $call);
 
-            if (static::$projectRoot !== "") {
-                if (array_key_exists('file', $call) && (stripos($call['file'], static::$projectRoot) === 0)) {
-                    $call['file'] = str_replace(static::$projectRoot, '', $call['file']);
-                }
+            if (
+                (static::$projectRoot !== "")
+                && (stripos(($call['file'] ?? ""), static::$projectRoot) === 0)
+            ) {
+                $call['file'] = str_replace(static::$projectRoot, '', $call['file']);
             }
 
             $args = "";
@@ -322,46 +285,6 @@ class ErrorHandler
     }
 
 
-    public static function exceptionAsString(\Throwable $e): string
-    {
-        $email = "Message: {$e->getMessage()}"
-            . "\nType: " . get_class($e)
-            . "\nCode: " . $e->getCode()
-            . "\nLine: " . $e->getLine()
-            . "\nFile: " . $e->getFile()
-            . "\nStack Trace:\n" . $e->getTraceAsString()
-            . "\n\n";
-
-        if (is_a($e, '\SubTech\CsvException')) {
-            $email .= "\nCSV Line No: " . $e->csvLineNo
-                . "\nHeaders: " . print_r($e->csvHeaders, true)
-                . "\nRecord: " . print_r($e->csvLine, true);
-        }
-
-        if (is_a($e, '\AllenJB\Sql\Exception\DatabaseQueryException') || is_a(
-                $e,
-                '\SubTech\Sql\DatabaseQueryException'
-            )) {
-            $email .= "\nStatement:\n" . print_r($e->getStatement(), true);
-            $email .= "\n\nValues:\n" . print_r($e->getValues(), true);
-        }
-
-        if (is_a($e, '\GuzzleHttp\Exception\TransferException')) {
-            if (is_object($e->getResponse())) {
-                $email .= "\nResponse Body:\n" . $e->getResponse()->getBody()->getContents();
-                $email .= "\n\nResponse Headers:\n" . print_r($e->getResponse()->getHeaders(), true);
-            }
-        }
-
-        if (is_object($e->getPrevious())) {
-            $email .= "--- Previous Exception ---\n"
-                . static::exceptionAsString($e->getPrevious());
-        }
-
-        return $email;
-    }
-
-
     public static function handleShutdown(): void
     {
         static::handleShutdownError();
@@ -383,35 +306,15 @@ class ErrorHandler
             return;
         }
 
-        $sendEmail = true;
-        if (class_exists(LoggingService::class)) {
-            $service = LoggingService::getInstance();
-            if ($service !== null) {
-                $exception = new \ErrorException(
-                    $lastError['message'],
-                    0,
-                    $lastError['type'],
-                    $lastError['file'],
-                    $lastError['line']
-                );
-                $event = new LoggingServiceEvent($exception);
-                $event->setLogger('shutdown_handler');
-                $id = $service->send($event);
-                if (! empty($id)) {
-                    $sendEmail = false;
-                }
-            }
-        }
-
-        $msg = "Shutdown Handler Error Report\n"
-            . "Error:\n" . print_r($lastError, true);
-        if ($sendEmail) {
-            static::email($msg, 'Shutdown PHP Error');
-        }
-
-        if (defined('ERROR_HANDLER_LOG')) {
-            file_put_contents(ERROR_HANDLER_LOG, $msg, FILE_APPEND);
-        }
+        $exception = new \ErrorException(
+            $lastError['message'],
+            0,
+            $lastError['type'],
+            $lastError['file'],
+            $lastError['line']
+        );
+        $notification = static::$notificationFactory::fromThrowable($exception, "Shutdown Error Handler");
+        Notifications::any($notification);
     }
 
 
@@ -431,34 +334,13 @@ class ErrorHandler
             return;
         }
 
-        $sendEmail = true;
-        if (class_exists(LoggingService::class)) {
-            $service = LoggingService::getInstance();
-            if ($service !== null) {
-                $event = new LoggingServiceEvent("Memory Limit Soft Limit Reached");
-                $event->setLevel('warning');
-                $event->setContext(
-                    [
-                        'soft_limit' => number_format($softLimitBytes),
-                        'memory_usage' => number_format($memoryUsed),
-                    ]
-                );
-                $event->setLogger('shutdown_handler');
-                $id = $service->send($event);
-                if (! empty($id)) {
-                    $sendEmail = false;
-                }
-            }
-        }
+        $n = new Notification("warning", "Soft Memory Limit", "Soft Memory Limit Reached");
+        $n->addContext("soft_limit_bytes", number_format($softLimitBytes));
+        $n->addContext("memory_usage_bytes", number_format($memoryUsed));
+        $n->addContext("memory_limit_ini", $memoryLimit);
+        $n->addContext("memory_limit_bytes", number_format($memoryLimitBytes));
 
-        if ($sendEmail) {
-            $msg = "Memory Soft Limit Reached"
-                . "\nAll values are in bytes"
-                . "\nMemory Limit: " . number_format($memoryLimitBytes) . ' (' . $memoryLimit . ')'
-                . "\nSoft Limit:   " . number_format($softLimitBytes)
-                . "\nMemory Usage: " . number_format($memoryUsed);
-            static::email($msg, 'Memory Soft Limit Reached');
-        }
+        Notifications::any($n);
     }
 
 
@@ -473,38 +355,18 @@ class ErrorHandler
 
         $severityDesc = (static::$levels[$severity] ?? $severity);
         // Some errors can be displayed inline and attempt to continue the code
-        $inlineLevels = [E_STRICT, E_NOTICE, E_WARNING, E_USER_NOTICE, E_USER_WARNING];
+        $inlineLevels = [E_STRICT, E_NOTICE, E_WARNING, E_USER_NOTICE, E_USER_WARNING, E_DEPRECATED, E_USER_DEPRECATED];
         $isInlineError = in_array($severity, $inlineLevels, true);
 
-        $stacktrace = static::stackTraceString();
-
-        $notifyLevel = [
-            E_STRICT => 'warning',
-            E_NOTICE => 'warning',
-            E_WARNING => 'warning',
-            E_USER_NOTICE => 'warning',
-            E_USER_WARNING => 'warning',
-        ];
-        $nLevel = (array_key_exists($severity, $notifyLevel) ? $notifyLevel[$severity] : 'error');
         $e = new \ErrorException($message, 0, $severity, $filepath, $line);
-        $n = new Notification($nLevel, 'ErrorHandler', null, $e);
+        $n = static::$notificationFactory::fromThrowable($e, "PHP Error");
         Notifications::any($n);
 
-        $logMsg = "Severity: {$severityDesc}"
-            . "\nMessage: {$message}"
-            . "\nFilename: {$filepath}"
-            . "\nLine: {$line}";
-
-        if (defined('ERROR_HANDLER_LOG')) {
-            file_put_contents(ERROR_HANDLER_LOG, $logMsg, FILE_APPEND);
-        }
-
         if (static::getOutputFormat() === 'cli') {
-            $msg = "\n\n{$severityDesc}: {$message}"
+            print "\n\n{$severityDesc}: {$message}"
                 . "\nLocation: {$filepath} @ line {$line}"
-                . "\n\nSTACK TRACE:\n" . $stacktrace
+                . "\n\nSTACK TRACE:\n" .  static::stackTraceString()
                 . "\n";
-            print $msg;
         } elseif (! $isInlineError) {
             static::displayError();
             exit(1);
@@ -517,31 +379,15 @@ class ErrorHandler
 
     public static function uncaughtException(\Throwable $e): void
     {
-        // Set variables used in php_error template
-        $stacktrace = $e->getTraceAsString();
-        $line = $e->getLine();
-        $message = $e->getMessage();
-        $filepath = $e->getFile();
-
-        $n = new Notification('fatal', 'ErrorHandler', null, $e);
-        if (is_a($e, '\AllenJB\Sql\Exception\DatabaseQueryException') || is_a(
-                $e,
-                '\SubTech\Sql\DatabaseQueryException'
-            )) {
-            $n->addContext("query statement", $e->getStatement());
-            $n->addContext("query values", $e->getValues());
-        }
+        $n = static::$notificationFactory::fromThrowable($e, "Uncaught Exception");
         Notifications::any($n);
 
-        $logMsg = static::exceptionAsString($e)
-            . "\n\nException methods:\n" . print_r(get_class_methods($e), true)
-            . "\n\nException properties:\n" . print_r(get_object_vars($e), true);
-
-        if (defined('ERROR_HANDLER_LOG')) {
-            file_put_contents(ERROR_HANDLER_LOG, $logMsg, FILE_APPEND);
-        }
-
         if (static::getOutputFormat() === 'cli') {
+            $stacktrace = $e->getTraceAsString();
+            $line = $e->getLine();
+            $message = $e->getMessage();
+            $filepath = $e->getFile();
+
             print "\nUncaught Exception: {$message}"
                 . "\nLocation: {$filepath} @ line {$line}"
                 . "\n\n{$stacktrace}\n";
