@@ -5,13 +5,6 @@ namespace AllenJB\Notifications;
 class ErrorHandler
 {
 
-    protected static $devEmails = [];
-
-    /**
-     * @var int If $_REQUEST exceeds this value (in bytes), then do not output to email
-     */
-    protected static $requestSizeLimit = 2048;
-
     /**
      * @var array Human descriptions of error levels
      */
@@ -36,22 +29,14 @@ class ErrorHandler
 
     protected static $projectRoot = "";
 
-    protected static $projectName = "";
-
-    protected static $appEnvironment = "";
-
     protected static NotificationFactoryInterface $notificationFactory;
 
 
     public static function setup(
         string $projectRoot,
-        string $projectName,
-        string $appEnvironment,
         NotificationFactoryInterface $notificationFactory
     ): void {
         static::$projectRoot = $projectRoot;
-        static::$projectName = $projectName;
-        static::$appEnvironment = $appEnvironment;
         static::$notificationFactory = $notificationFactory;
     }
 

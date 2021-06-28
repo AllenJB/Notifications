@@ -18,6 +18,8 @@ class Notifications
 
     protected static ?LoggingServiceInterface $loggingService = null;
 
+    protected static int $requestSizeLimit = 2048;
+
 
     public static function setDefaultMailTransport(?AbstractTransport $transport): void
     {
@@ -62,7 +64,7 @@ class Notifications
         $msg .= "\n\n_SERVER: " . print_r($_SERVER, true);
 
         $requestDump = print_r($_REQUEST, true);
-        if (strlen($requestDump) < 512) {
+        if (strlen($requestDump) < static::$requestSizeLimit) {
             $msg .= "\n\n_REQUEST:\n" . $requestDump;
         } else {
             $msg .= "\n\n_REQUEST: (excluded due to size)";
@@ -122,7 +124,7 @@ class Notifications
         $msg .= "\n\n_SERVER: " . print_r($_SERVER, true);
 
         $requestDump = print_r($_REQUEST, true);
-        if (strlen($requestDump) < 512) {
+        if (strlen($requestDump) < static::$requestSizeLimit) {
             $msg .= "\n\n_REQUEST:\n" . $requestDump;
         } else {
             $msg .= "\n\n_REQUEST: (excluded due to size)";
