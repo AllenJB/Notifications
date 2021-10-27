@@ -187,7 +187,7 @@ class LoggingService
             if ($event->getException() !== null) {
                 $data['exception'] = $event->getException();
                 $this->client->getOptions()->setAttachStacktrace(false);
-            } elseif (! $event->getExcludeStackTrace()) {
+            } elseif ($event->getExcludeStackTrace()) {
                 $this->client->getOptions()->setAttachStacktrace(false);
             }
 
