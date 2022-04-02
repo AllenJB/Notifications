@@ -43,6 +43,12 @@ class AllenJBMailer implements LoggingServiceInterface
     }
 
 
+    public function setFromEmail(string $email): void
+    {
+        $this->fromEmail = $email;
+    }
+
+
     public function setSubjectSuffix(string $suffix): void
     {
         $this->subjectSuffix = $suffix;
