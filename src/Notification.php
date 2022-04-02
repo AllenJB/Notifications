@@ -17,6 +17,8 @@ class Notification
 
     protected $context = [];
 
+    protected bool $includeSessionData = true;
+
 
     /**
      * @param string $level Notification level (debug, info, warning, error or fatal)
@@ -37,6 +39,18 @@ class Notification
         $this->exception = $exception;
         $this->logger = $loggerName;
         $this->context = $context;
+    }
+
+
+    public function setIncludeSessionData(bool $enabled): void
+    {
+        $this->includeSessionData = $enabled;
+    }
+
+
+    public function shouldIncludeSessionData(): bool
+    {
+        return $this->includeSessionData;
     }
 
 
