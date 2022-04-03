@@ -19,6 +19,10 @@ class Notification
 
     protected bool $includeSessionData = true;
 
+    protected bool $excludeStrackTrace = false;
+
+    protected \DateTimeImmutable $timestamp;
+
 
     /**
      * @param string $level Notification level (debug, info, warning, error or fatal)
@@ -34,11 +38,16 @@ class Notification
         \Throwable $exception = null,
         array $context = []
     ) {
+        $this->timestamp = new \DateTimeImmutable();
         $this->setLevel($level);
         $this->message = $optionalMessage;
         $this->exception = $exception;
         $this->logger = $loggerName;
         $this->context = $context;
+
+        // Ensure the Notification class is loaded - this should help prevent logging from failing in cases
+        // where available memory might be low
+        new Notification("info", "Preloading", "preloading");
     }
 
 
@@ -48,9 +57,21 @@ class Notification
     }
 
 
+    public function setExcludeStackTrace(bool $enabled = true): void
+    {
+        $this->excludeStrackTrace = $enabled;
+    }
+
+
     public function shouldIncludeSessionData(): bool
     {
         return $this->includeSessionData;
+    }
+
+
+    public function shouldExcludeStackTrace(): bool
+    {
+        return $this->excludeStrackTrace;
     }
 
 
@@ -99,6 +120,18 @@ class Notification
     public function getContext(): array
     {
         return $this->context;
+    }
+
+
+    public function getTimestamp(): \DateTimeImmutable
+    {
+        return $this->timestamp;
+    }
+
+
+    public function setTimestamp(\DateTimeImmutable $ts): void
+    {
+        $this->timestamp = $ts;
     }
 
 }

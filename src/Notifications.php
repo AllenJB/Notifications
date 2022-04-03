@@ -32,23 +32,8 @@ class Notifications
                 continue;
             }
 
-            $msg = $notification->getMessage();
-            if (is_object($notification->getException())) {
-                $serviceEvent = new LoggingServiceEvent($notification->getException());
-                if (! empty($msg)) {
-                    $serviceEvent->setMessage($msg);
-                }
-            } else {
-                $serviceEvent = new LoggingServiceEvent($msg);
-            }
-            $serviceEvent->setLevel($notification->getLevel());
-            $serviceEvent->setContext($notification->getContext());
-            if (($notification->getLogger() ?? "") !== "") {
-                $serviceEvent->setLogger($notification->getLogger());
-            }
-
             try {
-                if ($service->send($serviceEvent, $notification->shouldIncludeSessionData())) {
+                if ($service->send($notification)) {
                     return;
                 }
             } catch (\Exception $e) {

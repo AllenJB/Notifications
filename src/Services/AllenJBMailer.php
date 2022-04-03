@@ -6,8 +6,8 @@ namespace AllenJB\Notifications\Services;
 use AllenJB\Mailer\Email;
 use AllenJB\Mailer\Transport\AbstractTransport;
 use AllenJB\Notifications\ErrorHandler;
-use AllenJB\Notifications\LoggingServiceEvent;
 use AllenJB\Notifications\LoggingServiceInterface;
+use AllenJB\Notifications\Notification;
 use AllenJB\Notifications\Notifications;
 
 class AllenJBMailer implements LoggingServiceInterface
@@ -61,19 +61,19 @@ class AllenJBMailer implements LoggingServiceInterface
     }
 
 
-    public function send(LoggingServiceEvent $event, $includeSessionData = true): bool
+    public function send(Notification $notification): bool
     {
-        $msg = "Automated Notification:\n" . ($event->getMessage() ?? "");
+        $msg = "Automated Notification:\n" . ($notification->getMessage() ?? "");
 
-        $exception = $event->getException();
+        $exception = $notification->getException();
         if ($exception !== null) {
-            if ($event->getMessage() !== null) {
+            if ($notification->getMessage() !== null) {
                 $msg .= "\n";
             }
             $msg .= $exception->getMessage();
         }
 
-        foreach ($event->getContext() as $key => $value) {
+        foreach ($notification->getContext() as $key => $value) {
             $msg .= "\n\n{$key}: " . var_export($value, true);
         }
 
@@ -85,7 +85,7 @@ class AllenJBMailer implements LoggingServiceInterface
 
         $msg .= "\n\n_SERVER: " . print_r($_SERVER, true);
 
-        if ($includeSessionData) {
+        if ($notification->shouldIncludeSessionData()) {
             $requestDump = print_r($_REQUEST, true);
             if (strlen($requestDump) < $this->requestSizeMaxBytes) {
                 $msg .= "\n\n_REQUEST:\n" . $requestDump;
@@ -94,7 +94,7 @@ class AllenJBMailer implements LoggingServiceInterface
             }
         }
         $msg .= "\n\n--- EOM ---\n";
-        $subject = $event->getMessage() . $this->subjectSuffix;
+        $subject = $notification->getMessage() . $this->subjectSuffix;
 
         $email = new Email();
         $email->setSubject($subject);

@@ -2,8 +2,8 @@
 
 namespace AllenJB\Notifications\Services;
 
-use AllenJB\Notifications\LoggingServiceEvent;
 use AllenJB\Notifications\LoggingServiceInterface;
+use AllenJB\Notifications\Notification;
 use Sentry\ClientBuilder;
 use Sentry\ClientInterface;
 use Sentry\Event;
@@ -81,10 +81,6 @@ class Sentry3 implements LoggingServiceInterface
         SentrySdk::getCurrentHub()->configureScope(function (Scope $scope) use ($globalTags) : void {
             $scope->setTags($globalTags);
         });
-
-        // Ensure the LoggingServiceEvent class is loaded - this should help prevent logging from failing in cases
-        // where available memory might be low
-        new LoggingServiceEvent("preloading");
     }
 
 
@@ -105,12 +101,7 @@ class Sentry3 implements LoggingServiceInterface
     }
 
 
-    /**
-     * @param LoggingServiceEvent $event
-     * @param bool $includeSessionData Include session specific data ($_SESSION, $_REQUEST) - useful to exclude when parsing error logs
-     * @return null|string Event ID (if successful)
-     */
-    public function send(LoggingServiceEvent $event, $includeSessionData = true) : bool
+    public function send(Notification $notification) : bool
     {
         if ($this->client === null) {
             return false;
@@ -122,21 +113,14 @@ class Sentry3 implements LoggingServiceInterface
         if ($this->user !== null) {
             $sentryEvent->setUser($this->user);
         }
-        if (! empty($event->getUser())) {
-            $userDataBag = UserDataBag::createFromArray($event->getUser());
-            $sentryEvent->setUser($userDataBag);
-        }
 
-        if ($event->getTimeStamp() !== null) {
-            $sentryEvent->setTimestamp($event->getTimeStamp()->getTimestamp());
-        }
-        if (($event->getFingerprint() ?? "") !== "") {
-            $sentryEvent->setFingerprint(['{{default}}', $event->getFingerprint()]);
+        if ($notification->getTimeStamp() !== null) {
+            $sentryEvent->setTimestamp($notification->getTimeStamp()->getTimestamp());
         }
 
         $level = Severity::info();
-        if ($event->getLevel() !== null) {
-            $levelStr = $event->getLevel();
+        if ($notification->getLevel() !== null) {
+            $levelStr = $notification->getLevel();
             switch ($levelStr) {
                 case 'debug':
                     $level = Severity::debug();
@@ -165,30 +149,30 @@ class Sentry3 implements LoggingServiceInterface
         }
         $sentryEvent->setLevel($level);
 
-        if ($event->getLogger() !== null) {
-            $sentryEvent->setLogger($event->getLogger());
+        if ($notification->getLogger() !== null) {
+            $sentryEvent->setLogger($notification->getLogger());
         }
-        $sentryEvent->setTags($event->getTags());
+        $sentryEvent->setTags($this->globalTags);
 
-        foreach ($event->getContext() as $key => $value) {
+        foreach ($notification->getContext() as $key => $value) {
             $sentryEvent->setContext($key, $value);
         }
         $sentryEvent->setContext('_SERVER', $_SERVER);
-        if ($includeSessionData) {
+        if ($notification->shouldIncludeSessionData()) {
             $sentryEvent->setContext('_REQUEST', $_REQUEST);
             if (isset($_SESSION)) {
                 $sentryEvent->setContext('_SESSION', $_SESSION);
             }
         }
 
-        if ($event->getException() !== null) {
-            $sentryEvent->setExceptions([new ExceptionDataBag($event->getException())]);
+        if ($notification->getException() !== null) {
+            $sentryEvent->setExceptions([new ExceptionDataBag($notification->getException())]);
             $this->client->getOptions()->setAttachStacktrace(false);
-        } elseif (! $event->getExcludeStackTrace()) {
+        } elseif (! $notification->shouldExcludeStackTrace()) {
             $this->client->getOptions()->setAttachStacktrace(false);
         }
 
-        $sentryEvent->setMessage($event->getMessage());
+        $sentryEvent->setMessage($notification->getMessage());
         $lastEventId = $this->client->captureEvent($sentryEvent, null, null);
 
         $this->client->getOptions()->setAttachStacktrace(true);

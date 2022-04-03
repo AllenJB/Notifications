@@ -2,8 +2,8 @@
 
 namespace AllenJB\Notifications\Services;
 
-use AllenJB\Notifications\LoggingServiceEvent;
 use AllenJB\Notifications\LoggingServiceInterface;
+use AllenJB\Notifications\Notification;
 use Sentry\ClientBuilder;
 use Sentry\ClientInterface;
 use Sentry\SentrySdk;
@@ -75,10 +75,6 @@ class Sentry2 implements LoggingServiceInterface
         SentrySdk::getCurrentHub()->configureScope(function (Scope $scope) use ($globalTags) : void {
             $scope->setTags($globalTags);
         });
-
-        // Ensure the LoggingServiceEvent class is loaded - this should help prevent logging from failing in cases
-        // where available memory might be low
-        new LoggingServiceEvent("preloading");
     }
 
 
@@ -106,40 +102,29 @@ class Sentry2 implements LoggingServiceInterface
     }
 
 
-    /**
-     * @param LoggingServiceEvent $event
-     * @param bool $includeSessionData Include session specific data ($_SESSION, $_REQUEST) - useful to exclude when parsing error logs
-     * @return null|string Event ID (if successful)
-     */
-    public function send(LoggingServiceEvent $event, $includeSessionData = true) : bool
+    public function send(Notification $notification, $includeSessionData = true) : bool
     {
         if ($this->client === null) {
             return false;
         }
 
         $lastEventId = null;
-        SentrySdk::getCurrentHub()->withScope(function (Scope $scope) use ($event, $includeSessionData, &$lastEventId) : void {
+        SentrySdk::getCurrentHub()->withScope(function (Scope $scope) use ($notification, &$lastEventId) : void {
             // user is not null or empty array (we know user is either array or null)
             if (! empty($this->user)) {
                 $scope->setUser($this->user);
             }
-            if (! empty($event->getUser())) {
-                $scope->setUser($event->getUser());
-            }
 
             $data = [];
-            if ($event->getTimeStamp() !== null) {
-                $dt = new \DateTimeImmutable($event->getTimeStamp()->format('c'));
+            if ($notification->getTimeStamp() !== null) {
+                $dt = new \DateTimeImmutable($notification->getTimeStamp()->format('c'));
                 $dt = $dt->setTimezone(new \DateTimeZone("UTC"));
                 $data['timestamp'] = $dt->format('Y-m-d\TH:i:s\Z');
             }
-            if (($event->getFingerprint() ?? "") !== "") {
-                $data['fingerprint'] = ['{{default}}', $event->getFingerprint()];
-            }
 
             $level = Severity::info();
-            if ($event->getLevel() !== null) {
-                $levelStr = $event->getLevel();
+            if ($notification->getLevel() !== null) {
+                $levelStr = $notification->getLevel();
                 switch ($levelStr) {
                     case 'debug':
                         $level = Severity::debug();
@@ -167,34 +152,28 @@ class Sentry2 implements LoggingServiceInterface
                 }
                 $scope->setLevel($level);
             }
-            if ($event->getLogger() !== null) {
-                $data['logger'] = $event->getLogger();
+            if ($notification->getLogger() !== null) {
+                $data['logger'] = $notification->getLogger();
             }
-            $tags = $event->getTags();
-            if (! empty($tags)) {
-                foreach ($tags as $key => $value) {
-                    $scope->setTag($key, $value);
-                }
-            }
-            if (! empty($event->getContext())) {
-                $scope->setExtras($event->getContext());
+            if (! empty($notification->getContext())) {
+                $scope->setExtras($notification->getContext());
             }
             $scope->setExtra('_SERVER', $_SERVER);
-            if ($includeSessionData) {
+            if ($notification->shouldIncludeSessionData()) {
                 $scope->setExtra('_REQUEST', $_REQUEST);
                 if (isset($_SESSION)) {
                     $scope->setExtra('_SESSION', $_SESSION);
                 }
             }
 
-            if ($event->getException() !== null) {
-                $data['exception'] = $event->getException();
+            if ($notification->getException() !== null) {
+                $data['exception'] = $notification->getException();
                 $this->client->getOptions()->setAttachStacktrace(false);
-            } elseif (! $event->getExcludeStackTrace()) {
+            } elseif (! $notification->shouldExcludeStackTrace()) {
                 $this->client->getOptions()->setAttachStacktrace(false);
             }
 
-            $data["message"] = $event->getMessage();
+            $data["message"] = $notification->getMessage();
             $data["level"] = $level;
             $lastEventId = $this->client->captureEvent($data, null, $scope);
 
