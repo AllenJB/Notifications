@@ -199,6 +199,7 @@ class Sentry3 implements LoggingServiceInterface
                 "id" => $this->user->getId(),
                 "email" => $this->user->getEmail(),
                 "username" => $this->user->getUsername(),
+                "ip_address" => $this->user->getIpAddress(),
             ];
         }
         return $retval;
