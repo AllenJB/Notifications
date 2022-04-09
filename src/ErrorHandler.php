@@ -31,6 +31,8 @@ class ErrorHandler
 
     protected static NotificationFactoryInterface $notificationFactory;
 
+    protected static int $softMemoryLimitBytes;
+
 
     public static function setup(
         string $projectRoot,
@@ -303,24 +305,39 @@ class ErrorHandler
     }
 
 
+    protected static function setSoftMemoryLimitBytes(string $iniFormat): void
+    {
+        static::$softMemoryLimitBytes = static::iniToBytes($iniFormat);
+    }
+
+
+    protected static function setSoftMemoryLimitPercentage(int $percent): void
+    {
+        $memoryLimit = ini_get('memory_limit');
+        $memoryLimitBytes = static::iniToBytes($memoryLimit);
+        static::$softMemoryLimitBytes = $memoryLimitBytes * ($percent / 100);
+    }
+
+
     /**
      * Check the amount of memory used by the request and report if it's close to the memory limit
      * Note: We explicitly avoid using outside code as we may be near memory limit
      */
     protected static function handleShutdownMemory(): void
     {
-        $warnPercentage = 0.75;
-        $memoryLimit = ini_get('memory_limit');
-        $memoryLimitBytes = static::iniToBytes($memoryLimit);
-        $softLimitBytes = $memoryLimitBytes * $warnPercentage;
-
-        $memoryUsed = memory_get_peak_usage(true);
-        if ($memoryUsed < $softLimitBytes) {
+        if (! isset(static::$softMemoryLimitBytes)) {
             return;
         }
 
+        $memoryUsed = memory_get_peak_usage(true);
+        if ($memoryUsed < static::$softMemoryLimitBytes) {
+            return;
+        }
+
+        $memoryLimit = ini_get('memory_limit');
+        $memoryLimitBytes = static::iniToBytes($memoryLimit);
         $n = new Notification("warning", "Soft Memory Limit", "Soft Memory Limit Reached");
-        $n->addContext("soft_limit_bytes", number_format($softLimitBytes));
+        $n->addContext("soft_limit_bytes", number_format(static::$softMemoryLimitBytes));
         $n->addContext("memory_usage_bytes", number_format($memoryUsed));
         $n->addContext("memory_limit_ini", $memoryLimit);
         $n->addContext("memory_limit_bytes", number_format($memoryLimitBytes));

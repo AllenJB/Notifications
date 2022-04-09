@@ -25,9 +25,6 @@
     "ext-json": "*",
     "allenjb/mailer": "^2.0"
   },
-  "suggest": {
-    "allenjb/plates": "Required for Slim / PSR7 integration"
-  },
   "autoload": {
     "psr-4": {
       "AllenJB\\Notifications\\": "src"
