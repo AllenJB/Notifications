@@ -64,13 +64,18 @@ class AllenJBMailer implements LoggingServiceInterface
     public function send(Notification $notification): bool
     {
         $msg = "Automated Notification:\n" . ($notification->getMessage() ?? "");
+        $subject = $notification->getMessage();
 
         $exception = $notification->getException();
         if ($exception !== null) {
+            $subject = $exception->getMessage();
             if ($notification->getMessage() !== null) {
                 $msg .= "\n";
             }
             $msg .= $exception->getMessage();
+        }
+        if (strlen($subject ?? '') > 120) {
+            $subject = substr($subject, 0, 120) .'...';
         }
 
         foreach ($notification->getContext() as $key => $value) {
@@ -94,7 +99,7 @@ class AllenJBMailer implements LoggingServiceInterface
             }
         }
         $msg .= "\n\n--- EOM ---\n";
-        $subject = $notification->getMessage() . $this->subjectSuffix;
+        $subject = "". ($subject ?? "Notification") . $this->subjectSuffix;
 
         $email = new Email();
         $email->setSubject($subject);
