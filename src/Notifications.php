@@ -23,7 +23,7 @@ class Notifications
     }
 
 
-    protected static function setStaticInstance(Notifications $instance): void
+    public static function setStaticInstance(Notifications $instance): void
     {
         static::$instance = $instance;
     }
@@ -52,7 +52,6 @@ class Notifications
      * Send a notification by the prefered channel
      *
      * @param Notification $notification
-     * @deprecated
      */
     public static function any(Notification $notification): void
     {
