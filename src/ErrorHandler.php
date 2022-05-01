@@ -33,11 +33,15 @@ class ErrorHandler
 
     protected static int $softMemoryLimitBytes;
 
+    protected static Notifications $notifications;
+
 
     public static function setup(
         string $projectRoot,
+        Notifications $notifications,
         NotificationFactoryInterface $notificationFactory
     ): void {
+        static::$notifications = $notifications;
         static::$projectRoot = $projectRoot;
         static::$notificationFactory = $notificationFactory;
     }
@@ -300,8 +304,8 @@ class ErrorHandler
             $lastError['file'],
             $lastError['line']
         );
-        $notification = static::$notificationFactory::fromThrowable($exception, "Shutdown Error Handler");
-        Notifications::any($notification);
+        $n = static::$notificationFactory::fromThrowable($exception, "Shutdown Error Handler");
+        static::$notifications->send($n);
     }
 
 
@@ -342,7 +346,7 @@ class ErrorHandler
         $n->addContext("memory_limit_ini", $memoryLimit);
         $n->addContext("memory_limit_bytes", number_format($memoryLimitBytes));
 
-        Notifications::any($n);
+        static::$notifications->send($n);
     }
 
 
@@ -362,7 +366,7 @@ class ErrorHandler
 
         $e = new \ErrorException($message, 0, $severity, $filepath, $line);
         $n = static::$notificationFactory::fromThrowable($e, "PHP Error");
-        Notifications::any($n);
+        static::$notifications->send($n);
 
         if (static::getOutputFormat() === 'cli') {
             print "\n\n{$severityDesc}: {$message}"
@@ -382,7 +386,7 @@ class ErrorHandler
     public static function uncaughtException(\Throwable $e): void
     {
         $n = static::$notificationFactory::fromThrowable($e, "Uncaught Exception");
-        Notifications::any($n);
+        static::$notifications->send($n);
 
         if (static::getOutputFormat() === 'cli') {
             $stacktrace = $e->getTraceAsString();

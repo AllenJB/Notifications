@@ -52,9 +52,13 @@ class Notifications
      * Send a notification by the prefered channel
      *
      * @param Notification $notification
+     * @deprecated
      */
     public static function any(Notification $notification): void
     {
+        if (! isset(static::$instance)) {
+            return;
+        }
         static::$instance->send($notification);
     }
 
