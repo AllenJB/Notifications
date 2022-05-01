@@ -29,7 +29,10 @@ class Notifications
     }
 
 
-    public function send(Notification $notification, ?string $excludeClass = null): void
+    /**
+     * @return bool Was notification (reportedly) sent?
+     */
+    public function send(Notification $notification, ?string $excludeClass = null): bool
     {
         foreach ($this->serviceStack as $service) {
             if (($excludeClass !== null) && (get_class($service) === $excludeClass)) {
@@ -38,13 +41,15 @@ class Notifications
 
             try {
                 if ($service->send($notification)) {
-                    return;
+                    return true;
                 }
             } catch (\Exception $e) {
                 $n = new Notification("error", "Notification", null, $e);
-                $this->send($n, get_class($service));
+                return $this->send($n, get_class($service));
             }
         }
+
+        return false;
     }
 
 
@@ -52,13 +57,14 @@ class Notifications
      * Send a notification by the prefered channel
      *
      * @param Notification $notification
+     * @return bool Was notification (reportedly) sent?
      */
-    public static function any(Notification $notification): void
+    public static function any(Notification $notification): bool
     {
         if (! isset(static::$instance)) {
-            return;
+            return false;
         }
-        static::$instance->send($notification);
+        return static::$instance->send($notification);
     }
 
 
