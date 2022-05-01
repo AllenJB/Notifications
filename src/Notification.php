@@ -44,10 +44,6 @@ class Notification
         $this->exception = $exception;
         $this->logger = $loggerName;
         $this->context = $context;
-
-        // Ensure the Notification class is loaded - this should help prevent logging from failing in cases
-        // where available memory might be low
-        new Notification("info", "Preloading", "preloading");
     }
 
 

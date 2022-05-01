@@ -16,6 +16,10 @@ class Notifications
     public function __construct(array $serviceStack)
     {
         $this->serviceStack = $serviceStack;
+
+        // Ensure the Notification class is loaded - this should help prevent logging from failing in cases
+        // where available memory might be low
+        new Notification("info", "Preloading", "preloading");
     }
 
 
