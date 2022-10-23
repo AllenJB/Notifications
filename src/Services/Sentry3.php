@@ -6,10 +6,13 @@ use AllenJB\Notifications\LoggingServiceInterface;
 use AllenJB\Notifications\Notification;
 use Sentry\ClientBuilder;
 use Sentry\ClientInterface;
-use Sentry\Event;
+use Sentry\EventHint;
 use Sentry\ExceptionDataBag;
+use Sentry\ExceptionMechanism;
 use Sentry\SentrySdk;
 use Sentry\Severity;
+use Sentry\Stacktrace;
+use Sentry\StacktraceBuilder;
 use Sentry\State\Scope;
 use Sentry\UserDataBag;
 
@@ -67,7 +70,8 @@ class Sentry3 implements LoggingServiceInterface
             'send_default_pii' => true,
             'attach_stacktrace' => true,
         ];
-        $this->client = ClientBuilder::create($sentryOptions)->getClient();
+        \Sentry\init($sentryOptions);
+        $this->client = SentrySdk::getCurrentHub()->getClient();
 
         foreach ($globalTags as $key => $value) {
             if ($key === "") {
@@ -78,7 +82,7 @@ class Sentry3 implements LoggingServiceInterface
             }
         }
         $this->globalTags = $globalTags;
-        SentrySdk::getCurrentHub()->configureScope(function (Scope $scope) use ($globalTags) : void {
+        \Sentry\configureScope(function (Scope $scope) use ($globalTags) : void {
             $scope->setTags($globalTags);
         });
     }
@@ -154,21 +158,37 @@ class Sentry3 implements LoggingServiceInterface
         }
         $sentryEvent->setTags($this->globalTags);
 
-        foreach ($notification->getContext() as $key => $value) {
-            $sentryEvent->setContext($key, $value);
-        }
+        $additionalContext = $notification->getContext();
+        $sentryEvent->setContext('additional', $additionalContext);
         $sentryEvent->setContext('_SERVER', $_SERVER);
         if ($notification->shouldIncludeSessionData()) {
-            $sentryEvent->setContext('_REQUEST', $_REQUEST);
-            if (isset($_SESSION)) {
+            // https://github.com/getsentry/sentry-php/issues/993
+            // Sentry shows errors on the Sentry UI if you set a context value to an empty array
+            if (count($_REQUEST)) {
+                $sentryEvent->setContext('_REQUEST', $_REQUEST);
+            }
+            if (isset($_SESSION) && count($_SESSION)) {
                 $sentryEvent->setContext('_SESSION', $_SESSION);
             }
         }
 
+        $eventHint = null;
         $exception = $notification->getException();
         if ($exception !== null) {
-            $sentryEvent->setExceptions([new ExceptionDataBag($notification->getException())]);
-            $this->client->getOptions()->setAttachStacktrace(false);
+            $eventHint = new EventHint();
+            $eventHint->exception = $exception;
+            $exceptions = [];
+
+            $stackTraceBuilder = $this->client->getStacktraceBuilder();
+            do {
+                $exceptions[] = new ExceptionDataBag(
+                    $exception,
+                    $stackTraceBuilder->buildFromException($exception),
+                    new ExceptionMechanism(ExceptionMechanism::TYPE_GENERIC, true)
+                );
+            } while ($exception = $exception->getPrevious());
+
+            $sentryEvent->setExceptions($exceptions);
         } elseif (! $notification->shouldExcludeStackTrace()) {
             $this->client->getOptions()->setAttachStacktrace(false);
         }
@@ -176,7 +196,7 @@ class Sentry3 implements LoggingServiceInterface
         if ($notification->getMessage() !== null) {
             $sentryEvent->setMessage($notification->getMessage());
         }
-        $lastEventId = $this->client->captureEvent($sentryEvent, null, null);
+        $lastEventId = \Sentry\captureEvent($sentryEvent, $eventHint);
 
         $this->client->getOptions()->setAttachStacktrace(true);
 
