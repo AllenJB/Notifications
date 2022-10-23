@@ -165,14 +165,17 @@ class Sentry3 implements LoggingServiceInterface
             }
         }
 
-        if ($notification->getException() !== null) {
+        $exception = $notification->getException();
+        if ($exception !== null) {
             $sentryEvent->setExceptions([new ExceptionDataBag($notification->getException())]);
             $this->client->getOptions()->setAttachStacktrace(false);
         } elseif (! $notification->shouldExcludeStackTrace()) {
             $this->client->getOptions()->setAttachStacktrace(false);
         }
 
-        $sentryEvent->setMessage($notification->getMessage());
+        if ($notification->getMessage() !== null) {
+            $sentryEvent->setMessage($notification->getMessage());
+        }
         $lastEventId = $this->client->captureEvent($sentryEvent, null, null);
 
         $this->client->getOptions()->setAttachStacktrace(true);
