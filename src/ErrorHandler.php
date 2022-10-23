@@ -41,14 +41,17 @@ class ErrorHandler
         Notifications $notifications,
         NotificationFactoryInterface $notificationFactory
     ): void {
-        static::$notifications = $notifications;
         static::$projectRoot = $projectRoot;
+        static::$notifications = $notifications;
         static::$notificationFactory = $notificationFactory;
     }
 
 
     public static function setupHandlers(): void
     {
+        if (! isset(static::$notifications)) {
+            trigger_error('ErrorHandler::setup has not been run', E_USER_WARNING);
+        }
         set_error_handler([__CLASS__, 'phpError']);
         set_exception_handler([__CLASS__, 'uncaughtException']);
         register_shutdown_function([__CLASS__, 'handleShutdown']);
@@ -288,6 +291,9 @@ class ErrorHandler
      */
     protected static function handleShutdownError(): void
     {
+        if (! (isset(static::$notificationFactory) && isset(static::$notifications))) {
+            return;
+        }
         $lastError = error_get_last();
         if (! (is_array($lastError) && array_key_exists('type', $lastError))) {
             return;
@@ -329,6 +335,9 @@ class ErrorHandler
      */
     protected static function handleShutdownMemory(): void
     {
+        if (! isset(static::$notifications)) {
+            return;
+        }
         if (! isset(static::$softMemoryLimitBytes)) {
             return;
         }
@@ -364,14 +373,16 @@ class ErrorHandler
         $inlineLevels = [E_STRICT, E_NOTICE, E_WARNING, E_USER_NOTICE, E_USER_WARNING, E_DEPRECATED, E_USER_DEPRECATED];
         $isInlineError = in_array($severity, $inlineLevels, true);
 
-        $e = new \ErrorException($message, 0, $severity, $filepath, $line);
-        $n = static::$notificationFactory::fromThrowable($e, "PHP Error");
-        static::$notifications->send($n);
+        if (isset(static::$notificationFactory) && isset(static::$notifications)) {
+            $e = new \ErrorException($message, 0, $severity, $filepath, $line);
+            $n = static::$notificationFactory::fromThrowable($e, "PHP Error");
+            static::$notifications->send($n);
+        }
 
         if (static::getOutputFormat() === 'cli') {
             print "\n\n{$severityDesc}: {$message}"
                 . "\nLocation: {$filepath} @ line {$line}"
-                . "\n\nSTACK TRACE:\n" .  static::stackTraceString()
+                . "\n\nSTACK TRACE:\n" . static::stackTraceString()
                 . "\n";
         } elseif (! $isInlineError) {
             static::displayError();
@@ -385,8 +396,10 @@ class ErrorHandler
 
     public static function uncaughtException(\Throwable $e): void
     {
-        $n = static::$notificationFactory::fromThrowable($e, "Uncaught Exception");
-        static::$notifications->send($n);
+        if (isset(static::$notificationFactory) && isset(static::$notifications)) {
+            $n = static::$notificationFactory::fromThrowable($e, "Uncaught Exception");
+            static::$notifications->send($n);
+        }
 
         if (static::getOutputFormat() === 'cli') {
             $stacktrace = $e->getTraceAsString();
