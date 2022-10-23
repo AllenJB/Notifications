@@ -160,7 +160,9 @@ class Sentry3 implements LoggingServiceInterface
         $sentryEvent->setTags($this->globalTags);
 
         $additionalContext = $notification->getContext();
-        $sentryEvent->setContext('additional', $additionalContext);
+        if (count($additionalContext)) {
+            $sentryEvent->setContext('additional', $additionalContext);
+        }
         $sentryEvent->setContext('_SERVER', $_SERVER);
         if ($notification->shouldIncludeSessionData()) {
             // https://github.com/getsentry/sentry-php/issues/993
