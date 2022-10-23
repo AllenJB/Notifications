@@ -6,6 +6,7 @@ use AllenJB\Notifications\LoggingServiceInterface;
 use AllenJB\Notifications\Notification;
 use Sentry\ClientBuilder;
 use Sentry\ClientInterface;
+use Sentry\Event;
 use Sentry\EventHint;
 use Sentry\ExceptionDataBag;
 use Sentry\ExceptionMechanism;
