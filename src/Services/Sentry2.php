@@ -155,9 +155,14 @@ class Sentry2 implements LoggingServiceInterface
             if ($notification->getLogger() !== null) {
                 $data['logger'] = $notification->getLogger();
             }
-            if (! empty($notification->getContext())) {
-                $scope->setExtras($notification->getContext());
+
+            $additionalContext = $notification->getContext();
+            if (count($additionalContext)) {
+                foreach ($additionalContext as $section => $kvData) {
+                    $data['contexts'][$section] = $kvData;
+                }
             }
+
             $scope->setExtra('_SERVER', $_SERVER);
             if ($notification->shouldIncludeSessionData()) {
                 $scope->setExtra('_REQUEST', $_REQUEST);

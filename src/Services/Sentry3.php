@@ -161,7 +161,9 @@ class Sentry3 implements LoggingServiceInterface
 
         $additionalContext = $notification->getContext();
         if (count($additionalContext)) {
-            $sentryEvent->setContext('additional', $additionalContext);
+            foreach ($additionalContext as $section => $kvData) {
+                $sentryEvent->setContext($section, $kvData);
+            }
         }
         $sentryEvent->setContext('_SERVER', $_SERVER);
         if ($notification->shouldIncludeSessionData()) {

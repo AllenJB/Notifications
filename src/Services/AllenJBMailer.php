@@ -78,8 +78,11 @@ class AllenJBMailer implements LoggingServiceInterface
             $subject = substr($subject, 0, 120) .'...';
         }
 
-        foreach ($notification->getContext() as $key => $value) {
-            $msg .= "\n\n{$key}: " . var_export($value, true);
+        foreach ($notification->getContext() as $section => $kvData) {
+            $msg .= "# ". $section ."\n\n";
+            foreach ($kvData as $key => $value) {
+                $msg .= "\n\n{$key}: " . var_export($value, true);
+            }
         }
 
         if ($exception !== null) {

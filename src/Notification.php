@@ -5,17 +5,20 @@ namespace AllenJB\Notifications;
 class Notification
 {
 
-    protected $message;
+    protected string $message;
 
-    protected $level;
+    protected string $level;
 
-    protected static $validLevels = ['debug', 'info', 'warning', 'error', 'fatal'];
+    protected static array $validLevels = ['debug', 'info', 'warning', 'error', 'fatal'];
 
-    protected $exception = null;
+    protected ?\Throwable $exception = null;
 
-    protected $logger = null;
+    protected ?string $logger = null;
 
-    protected $context = [];
+    /**
+     * @var array<string, array<string, mixed>>
+     */
+    protected array $context = [];
 
     protected bool $includeSessionData = true;
 
@@ -41,9 +44,16 @@ class Notification
         $this->timestamp = new \DateTimeImmutable();
         $this->setLevel($level);
         $this->message = $optionalMessage;
-        $this->exception = $exception;
         $this->logger = $loggerName;
-        $this->context = $context;
+        $this->context["Additional Data"] = $context;
+
+        $this->exception = $exception;
+        if ($this->exception !== null) {
+            $exceptionData = get_object_vars($exception);
+            if (count($exceptionData)) {
+                $this->context["Exception Properties"] = $exceptionData;
+            }
+        }
     }
 
 
@@ -71,9 +81,9 @@ class Notification
     }
 
 
-    public function addContext(string $key, $value): void
+    public function addContext(string $key, $value, $section = 'Additional Data'): void
     {
-        $this->context[$key] = $value;
+        $this->context[$section][$key] = $value;
     }
 
 
