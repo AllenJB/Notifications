@@ -159,6 +159,12 @@ class Sentry2 implements LoggingServiceInterface
             $additionalContext = $notification->getContext();
             if (count($additionalContext)) {
                 foreach ($additionalContext as $section => $kvData) {
+                    if (! is_array($kvData)) {
+                        $kvData = ["value" => $kvData];
+                    }
+                    if (count($kvData) === 0) {
+                        continue;
+                    }
                     $data['contexts'][$section] = $kvData;
                 }
             }

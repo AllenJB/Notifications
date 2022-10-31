@@ -5,7 +5,7 @@ namespace AllenJB\Notifications;
 class Notification
 {
 
-    protected string $message;
+    protected ?string $message;
 
     protected string $level;
 
