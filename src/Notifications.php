@@ -13,6 +13,9 @@ class Notifications
     protected array $serviceStack;
 
 
+    /**
+     * @param array<LoggingServiceInterface> $serviceStack
+     */
     public function __construct(array $serviceStack)
     {
         $this->serviceStack = $serviceStack;

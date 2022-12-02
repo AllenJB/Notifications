@@ -5,10 +5,11 @@ namespace AllenJB\Notifications;
 class TriggerError
 {
 
-    /** @noinspection PhpUndefinedFieldInspection PhpUnusedLocalVariableInspection */
+    /** @noinspection PhpExpressionAlwaysNullInspection PhpUnusedLocalVariableInspection */
     public static function notice(): void
     {
         $v = null;
+        // @phpstan-ignore-next-line
         $a = $v->nonExistant;
     }
 
@@ -17,6 +18,7 @@ class TriggerError
     public static function warning(): void
     {
         $v = null;
+        // @phpstan-ignore-next-line
         count($v);
     }
 
@@ -24,6 +26,7 @@ class TriggerError
     /** @noinspection PhpUndefinedFunctionInspection */
     public static function fatalError(): void
     {
+        // @phpstan-ignore-next-line
         thisFunctionIsNotDefined();
     }
 
@@ -31,6 +34,7 @@ class TriggerError
     /** @noinspection PhpDivisionByZeroInspection PhpExpressionResultUnusedInspection */
     public static function thrownError(): void
     {
+        // @phpstan-ignore-next-line
         2 % 0;
     }
 
@@ -39,6 +43,7 @@ class TriggerError
     public static function oom(): void
     {
         $a = '';
+        // @phpstan-ignore-next-line
         while (true) {
             $a .= str_repeat("Hello", 1024 * 1024);
         }
@@ -51,18 +56,14 @@ class TriggerError
      */
     public static function stackOverflow(): void
     {
-        function callSelf()
-        {
-            callSelf();
-        }
-
-        callSelf();
+        static::stackOverflow();
     }
 
 
     /** @noinspection PhpUnusedLocalVariableInspection */
     public static function timeout(): void
     {
+        // @phpstan-ignore-next-line
         while (true) {
             $v = password_hash('dummy value', PASSWORD_BCRYPT, ['cost' => 30]);
         }

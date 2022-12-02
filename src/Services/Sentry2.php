@@ -13,11 +13,14 @@ use Sentry\State\Scope;
 class Sentry2 implements LoggingServiceInterface
 {
 
-    protected static $instance = null;
+    protected static ?self $instance = null;
 
     protected ClientInterface $client;
 
-    protected array $user;
+    /**
+     * @var array<string, mixed>|null
+     */
+    protected ?array $user;
 
     protected string $appEnvironment;
 
@@ -26,21 +29,21 @@ class Sentry2 implements LoggingServiceInterface
     protected ?string $publicDSN = null;
 
 
-    /**
-     * @return static|null
-     */
-    public static function getInstance() : ?Sentry2
+    public static function getInstance(): ?self
     {
         return static::$instance;
     }
 
 
-    public static function setInstance(Sentry2 $instance) : void
+    public static function setInstance(Sentry2 $instance): void
     {
         static::$instance = $instance;
     }
 
 
+    /**
+     * @param array<string, string> $globalTags
+     */
     public function __construct(
         string $sentryDSN,
         string $appEnvironment,
@@ -72,13 +75,16 @@ class Sentry2 implements LoggingServiceInterface
                 throw new \InvalidArgumentException("Tag value cannot be an empty string");
             }
         }
-        SentrySdk::getCurrentHub()->configureScope(function (Scope $scope) use ($globalTags) : void {
+        SentrySdk::getCurrentHub()->configureScope(function (Scope $scope) use ($globalTags): void {
             $scope->setTags($globalTags);
         });
     }
 
 
-    public function setUser(array $user = null) : void
+    /**
+     * @param array<string,mixed>|null $user
+     */
+    public function setUser(?array $user = null): void
     {
         if (is_array($user)) {
             foreach ($user as $key => $value) {
@@ -96,28 +102,27 @@ class Sentry2 implements LoggingServiceInterface
     }
 
 
-    public function getUser() : ?array
+    /**
+     * @return array<string,mixed>|null
+     */
+    public function getUser(): ?array
     {
         return $this->user;
     }
 
 
-    public function send(Notification $notification, $includeSessionData = true) : bool
+    public function send(Notification $notification, bool $includeSessionData = true): bool
     {
-        if ($this->client === null) {
-            return false;
-        }
-
         $lastEventId = null;
-        SentrySdk::getCurrentHub()->withScope(function (Scope $scope) use ($notification, &$lastEventId) : void {
+        SentrySdk::getCurrentHub()->withScope(function (Scope $scope) use ($notification, &$lastEventId): void {
             // user is not null or empty array (we know user is either array or null)
             if (! empty($this->user)) {
                 $scope->setUser($this->user);
             }
 
             $data = [];
-            if ($notification->getTimeStamp() !== null) {
-                $dt = new \DateTimeImmutable($notification->getTimeStamp()->format('c'));
+            if ($notification->getTimestamp() !== null) {
+                $dt = new \DateTimeImmutable($notification->getTimestamp()->format('c'));
                 $dt = $dt->setTimezone(new \DateTimeZone("UTC"));
                 $data['timestamp'] = $dt->format('Y-m-d\TH:i:s\Z');
             }
@@ -195,7 +200,7 @@ class Sentry2 implements LoggingServiceInterface
     }
 
 
-    public function generateBrowserJS() : string
+    public function generateBrowserJS(): string
     {
         if (($this->publicDSN ?? "") === "") {
             return "";
@@ -237,10 +242,13 @@ class Sentry2 implements LoggingServiceInterface
     }
 
 
+    /**
+     * @param mixed $value
+     */
     protected function jsonEncode(
         $value,
-        $options = JSON_HEX_AMP | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_APOS
-    ) : string {
+        int $options = JSON_HEX_AMP | JSON_HEX_QUOT | JSON_HEX_TAG | JSON_HEX_APOS
+    ): string {
         $retval = json_encode($value, $options);
 
         if ($retval === false) {

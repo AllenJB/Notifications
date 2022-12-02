@@ -5,7 +5,10 @@ namespace AllenJB\Notifications;
 
 class NotificationFactory implements NotificationFactoryInterface
 {
-    protected static $phpErrorNotifyLevel = [
+    /**
+     * @var array<int, string>
+     */
+    protected static array $phpErrorNotifyLevel = [
         E_STRICT => 'warning',
         E_NOTICE => 'warning',
         E_WARNING => 'warning',

@@ -20,7 +20,7 @@ use Sentry\UserDataBag;
 class Sentry3 implements LoggingServiceInterface
 {
 
-    protected static $instance = null;
+    protected static ?self $instance = null;
 
     protected ClientInterface $client;
 
@@ -32,24 +32,27 @@ class Sentry3 implements LoggingServiceInterface
 
     protected ?string $publicDSN = null;
 
+    /**
+     * @var array<string, string>
+     */
     protected array $globalTags;
 
 
-    /**
-     * @return static|null
-     */
-    public static function getInstance() : ?Sentry3
+    public static function getInstance(): ?self
     {
         return static::$instance;
     }
 
 
-    public static function setInstance(Sentry3 $instance) : void
+    public static function setInstance(Sentry3 $instance): void
     {
         static::$instance = $instance;
     }
 
 
+    /**
+     * @param array<string, string> $globalTags
+     */
     public function __construct(
         string $sentryDSN,
         string $appEnvironment,
@@ -83,13 +86,16 @@ class Sentry3 implements LoggingServiceInterface
             }
         }
         $this->globalTags = $globalTags;
-        \Sentry\configureScope(function (Scope $scope) use ($globalTags) : void {
+        \Sentry\configureScope(function (Scope $scope) use ($globalTags): void {
             $scope->setTags($globalTags);
         });
     }
 
 
-    public function setUser(array $user = null) : void
+    /**
+     * @param array<string, mixed>|null $user
+     */
+    public function setUser(array $user = null): void
     {
         if (empty($user)) {
             $this->user = null;
@@ -106,12 +112,8 @@ class Sentry3 implements LoggingServiceInterface
     }
 
 
-    public function send(Notification $notification) : bool
+    public function send(Notification $notification): bool
     {
-        if ($this->client === null) {
-            return false;
-        }
-
         $sentryEvent = Event::createEvent();
 
         // user is not null or empty array (we know user is either array or null)
@@ -119,8 +121,8 @@ class Sentry3 implements LoggingServiceInterface
             $sentryEvent->setUser($this->user);
         }
 
-        if ($notification->getTimeStamp() !== null) {
-            $sentryEvent->setTimestamp($notification->getTimeStamp()->getTimestamp());
+        if ($notification->getTimestamp() !== null) {
+            $sentryEvent->setTimestamp($notification->getTimestamp()->getTimestamp());
         }
 
         $level = Severity::info();
@@ -215,7 +217,7 @@ class Sentry3 implements LoggingServiceInterface
     }
 
 
-    public function getBrowseJSConfig() : \stdClass
+    public function getBrowseJSConfig(): \stdClass
     {
         $retval = (object) [
             "release" => $this->appVersion,

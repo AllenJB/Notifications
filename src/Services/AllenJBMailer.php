@@ -29,6 +29,9 @@ class AllenJBMailer implements LoggingServiceInterface
     protected int $requestSizeMaxBytes = 2048;
 
 
+    /**
+     * @param array<string> $recipientEmails
+     */
     public function __construct(AbstractTransport $mailTransport, array $recipientEmails)
     {
         $this->transport = $mailTransport;

@@ -9,6 +9,9 @@ class Notification
 
     protected string $level;
 
+    /**
+     * @var array<string>
+     */
     protected static array $validLevels = ['debug', 'info', 'warning', 'error', 'fatal'];
 
     protected ?\Throwable $exception = null;
@@ -48,7 +51,7 @@ class Notification
         $this->context["Additional Data"] = $context;
 
         $this->exception = $exception;
-        if ($this->exception !== null) {
+        if ($exception !== null) {
             $exceptionData = get_object_vars($exception);
             if (count($exceptionData)) {
                 $this->context["Exception Properties"] = $exceptionData;
@@ -81,13 +84,16 @@ class Notification
     }
 
 
-    public function addContext(string $key, $value, $section = 'Additional Data'): void
+    /**
+     * @param mixed $value
+     */
+    public function addContext(string $key, $value, string $section = 'Additional Data'): void
     {
         $this->context[$section][$key] = $value;
     }
 
 
-    public function getLevel()
+    public function getLevel(): string
     {
         return $this->level;
     }
@@ -123,6 +129,9 @@ class Notification
     }
 
 
+    /**
+     * @return array<string, array<string, mixed>>
+     */
     public function getContext(): array
     {
         return $this->context;

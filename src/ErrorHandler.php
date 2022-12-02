@@ -6,9 +6,9 @@ class ErrorHandler
 {
 
     /**
-     * @var array Human descriptions of error levels
+     * @var array<int, string> Human descriptions of error levels
      */
-    protected static $levels = [
+    protected static array $levels = [
         // Fatal
         E_ERROR => 'Error',
         E_PARSE => 'Parsing Error',
@@ -27,11 +27,13 @@ class ErrorHandler
     ];
 
 
-    protected static $projectRoot = "";
+    protected static string $projectRoot = "";
 
     protected static NotificationFactoryInterface $notificationFactory;
 
-    protected static int $softMemoryLimitBytes;
+    protected static ?int $softMemoryLimitBytes = null;
+
+    protected static ?int $softMemoryLimitPercent = null;
 
     protected static Notifications $notifications;
 
@@ -61,11 +63,13 @@ class ErrorHandler
     /** @noinspection PhpMissingBreakStatementInspection */
     protected static function iniToBytes(string $iniValue): int
     {
-        $iniValue = trim($iniValue);
-        $last = strtolower(substr($iniValue, -1));
-        if (! preg_match('/^[0-9]$/', $last)) {
-            $iniValue = substr($iniValue, 0, -1);
+        $iniValue = strtolower(trim($iniValue));
+        if (! preg_match('/^([0-9])([gmk]?)$/i', $iniValue, $matches)) {
+            throw new \InvalidArgumentException("Value is not a valid ini value");
         }
+
+        [$_, $iniValue, $last] = $matches;
+        $iniValue = (int) $iniValue;
         switch ($last) {
             // Intentional fall-through
             case 'g':
@@ -74,6 +78,11 @@ class ErrorHandler
                 $iniValue *= 1024;
             case 'k':
                 $iniValue *= 1024;
+            case '';
+                // Do nothing;
+                break;
+            default:
+                throw new \InvalidArgumentException("Value is not a valid ini value (unhandled multiplier letter)");
         }
 
         return $iniValue;
@@ -315,17 +324,21 @@ class ErrorHandler
     }
 
 
-    protected static function setSoftMemoryLimitBytes(string $iniFormat): void
+    protected static function setSoftMemoryLimitBytes(?string $iniFormat): void
     {
+        static::$softMemoryLimitPercent = null;
+        if ($iniFormat === null) {
+            static::$softMemoryLimitBytes = null;
+            return;
+        }
         static::$softMemoryLimitBytes = static::iniToBytes($iniFormat);
     }
 
 
-    protected static function setSoftMemoryLimitPercentage(int $percent): void
+    protected static function setSoftMemoryLimitPercentage(?int $percent): void
     {
-        $memoryLimit = ini_get('memory_limit');
-        $memoryLimitBytes = static::iniToBytes($memoryLimit);
-        static::$softMemoryLimitBytes = $memoryLimitBytes * ($percent / 100);
+        static::$softMemoryLimitBytes = null;
+        static::$softMemoryLimitPercent = $percent;
     }
 
 
@@ -338,19 +351,30 @@ class ErrorHandler
         if (! isset(static::$notifications)) {
             return;
         }
-        if (! isset(static::$softMemoryLimitBytes)) {
+        if (! (isset(static::$softMemoryLimitBytes) || isset(static::$softMemoryLimitPercent))) {
+            return;
+        }
+        $memoryLimit = ini_get('memory_limit');
+        if (($memoryLimit === false) || (-1 === (int) $memoryLimit)) {
+            return;
+        }
+        $memoryLimitBytes = static::iniToBytes($memoryLimit);
+
+        $softMemoryLimitBytes = static::$softMemoryLimitBytes;
+        if (isset(static::$softMemoryLimitPercent)) {
+            $softMemoryLimitBytes = (float) $memoryLimitBytes * (static::$softMemoryLimitPercent / 100);
+        }
+        if (! isset($softMemoryLimitBytes)) {
             return;
         }
 
         $memoryUsed = memory_get_peak_usage(true);
-        if ($memoryUsed < static::$softMemoryLimitBytes) {
+        if ($memoryUsed < $softMemoryLimitBytes) {
             return;
         }
 
-        $memoryLimit = ini_get('memory_limit');
-        $memoryLimitBytes = static::iniToBytes($memoryLimit);
         $n = new Notification("warning", "Soft Memory Limit", "Soft Memory Limit Reached");
-        $n->addContext("soft_limit_bytes", number_format(static::$softMemoryLimitBytes));
+        $n->addContext("soft_limit_bytes", number_format($softMemoryLimitBytes));
         $n->addContext("memory_usage_bytes", number_format($memoryUsed));
         $n->addContext("memory_limit_ini", $memoryLimit);
         $n->addContext("memory_limit_bytes", number_format($memoryLimitBytes));
