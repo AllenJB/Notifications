@@ -290,6 +290,8 @@ class ErrorHandler
 
     public static function handleShutdown(): void
     {
+        // If the application has hit (or is about to hit) memory limit, don't hit it (again) while reporting
+        ini_set('memory_limit', '-1');
         static::handleShutdownError();
         static::handleShutdownMemory();
     }
@@ -420,6 +422,8 @@ class ErrorHandler
 
     public static function uncaughtException(\Throwable $e): void
     {
+        // If the application has hit (or is about to hit) memory limit, don't hit it (again) while reporting
+        ini_set('memory_limit', '-1');
         if (isset(static::$notificationFactory) && isset(static::$notifications)) {
             $n = static::$notificationFactory::fromThrowable($e, "Uncaught Exception");
             static::$notifications->send($n);
