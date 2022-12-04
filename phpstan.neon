@@ -15,6 +15,11 @@ parameters:
     checkFunctionNameCase: true
     reportStaticMethodSignatures: true
 
+    ignoreErrors:
+        -
+            message: '#^Method [^:]+\:\:stackTraceString\(\) has parameter \$backtrace with no value type specified in iterable type array#'
+            path: src/ErrorHandler.php
+
 services:
     -
         class: PHPStan\Rules\DisallowedConstructs\DisallowedImplicitArrayCreationRule
