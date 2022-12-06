@@ -291,9 +291,12 @@ class ErrorHandler
     public static function handleShutdown(): void
     {
         // If the application has hit (or is about to hit) memory limit, don't hit it (again) while reporting
-        ini_set('memory_limit', '-1');
+        $memoryLimit = ini_set('memory_limit', '-1');
+        if ($memoryLimit === false) {
+            $memoryLimit = null;
+        }
         static::handleShutdownError();
-        static::handleShutdownMemory();
+        static::handleShutdownMemory($memoryLimit);
     }
 
 
@@ -348,7 +351,7 @@ class ErrorHandler
      * Check the amount of memory used by the request and report if it's close to the memory limit
      * Note: We explicitly avoid using outside code as we may be near memory limit
      */
-    protected static function handleShutdownMemory(): void
+    protected static function handleShutdownMemory(?string $memoryLimit): void
     {
         if (! isset(static::$notifications)) {
             return;
@@ -356,8 +359,7 @@ class ErrorHandler
         if (! (isset(static::$softMemoryLimitBytes) || isset(static::$softMemoryLimitPercent))) {
             return;
         }
-        $memoryLimit = ini_get('memory_limit');
-        if (($memoryLimit === false) || (-1 === (int) $memoryLimit)) {
+        if (($memoryLimit === null) || (-1 === (int) $memoryLimit)) {
             return;
         }
         $memoryLimitBytes = static::iniToBytes($memoryLimit);
