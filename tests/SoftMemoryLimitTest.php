@@ -46,7 +46,7 @@ class SoftMemoryLimitTest extends TestCase
 
     public function testPercentLimitExceeded(): void
     {
-        $memoryLimit = ini_set('memory_limit', '10m');
+        $memoryLimit = ini_set('memory_limit', '25m');
         $notificationStore = new MemoryStore();
         $notifications = new Notifications([$notificationStore]);
         $notificationFactory = new NotificationFactory();
@@ -60,7 +60,7 @@ class SoftMemoryLimitTest extends TestCase
         $this->assertStringContainsStringIgnoringCase('soft memory limit reached', ($event->getMessage() ?? ''));
 
         $context = $event->getContext();
-        $this->assertEquals('104,858', $context['Additional Data']['soft_limit_bytes']);
+        $this->assertEquals('262,144', $context['Additional Data']['soft_limit_bytes']);
         ini_set('memory_limit', $memoryLimit);
     }
 
