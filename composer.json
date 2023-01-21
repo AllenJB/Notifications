@@ -26,7 +26,12 @@
   },
   "autoload": {
     "psr-4": {
-      "AllenJB\\Notifications\\": "src"
+      "AllenJB\\Notifications\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "AllenJB\\Notifications\\Tests\\": "tests/"
     }
   },
   "require-dev": {
@@ -34,7 +39,8 @@
     "phpstan/phpstan-strict-rules": "^1.4",
     "phpcompatibility/php-compatibility": "^9.3",
     "dealerdirect/phpcodesniffer-composer-installer": "^0.7.2",
-    "php-parallel-lint/php-parallel-lint": "^1.3"
+    "php-parallel-lint/php-parallel-lint": "^1.3",
+    "phpunit/phpunit": "^9.5"
   },
   "config": {
     "allow-plugins": {

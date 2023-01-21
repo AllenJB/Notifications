@@ -18,7 +18,10 @@ parameters:
     ignoreErrors:
         -
             message: '#^Method [^:]+\:\:stackTraceString\(\) has parameter \$backtrace with no value type specified in iterable type array#'
-            path: src/ErrorHandler.php
+            path: **/src/ErrorHandler.php
+        -
+            message: '#^Dynamic call to static method PHPUnit#'
+            path: **/tests/*
 
 services:
     -
