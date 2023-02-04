@@ -13,9 +13,9 @@ class PHP
      */
     protected $fileHandle;
 
-    protected ?LoggedPHPEvent $previousLastEvent;
+    protected ?PHPEvent $previousLastEvent;
 
-    protected ?LoggedPHPEvent $lastEvent = null;
+    protected ?PHPEvent $lastEvent = null;
 
     /**
      * @var array<string|int> List of severity descriptions and E_ constant values to ignore
@@ -32,7 +32,7 @@ class PHP
     ];
 
 
-    public function __construct(string $logFilePath, ?LoggedPHPEvent $previousLastEvent)
+    public function __construct(string $logFilePath, ?PHPEvent $previousLastEvent)
     {
         $this->previousLastEvent = $previousLastEvent;
 
@@ -59,14 +59,14 @@ class PHP
     }
 
 
-    public function getLastEvent(): ?LoggedPHPEvent
+    public function getLastEvent(): ?PHPEvent
     {
         return $this->lastEvent;
     }
 
 
     /**
-     * @return array<LoggedPHPEvent>
+     * @return array<PHPEvent>
      */
     public function parse(): array
     {
@@ -76,7 +76,7 @@ class PHP
         }
 
         /**
-         * @var array<LoggedPHPEvent> $events
+         * @var array<PHPEvent> $events
          */
         $events = [];
         $curEvent = null;
@@ -150,7 +150,7 @@ class PHP
     /**
      * @param array{date: string, msg: string, severity?: string} $matches
      */
-    protected function createEventFromMatches(array $matches): LoggedPHPEvent
+    protected function createEventFromMatches(array $matches): PHPEvent
     {
         $dtLastLine = new DateTimeImmutable($matches['date']);
         $severity = ($matches['severity'] ?? null);
@@ -172,24 +172,16 @@ class PHP
             }
         }
 
-        return new LoggedPHPEvent($dtLastLine, $severity, $msg, $file, $lineNo);
+        return new PHPEvent($dtLastLine, $severity, $msg, $file, $lineNo);
     }
 
 
-    protected function shouldIgnoreEvent(LoggedPHPEvent $event): bool
+    protected function shouldIgnoreEvent(PHPEvent $event): bool
     {
         if (($event->severityDesc === null) && ($event->severityCode === null)) {
             return false;
         }
 
-        foreach ($this->ignoreSeverity as $ignoreSeverity) {
-            if (is_int($ignoreSeverity) && ($event->severityCode === $ignoreSeverity)) {
-                return true;
-            } elseif (is_string($ignoreSeverity) && ($event->severityDesc === $ignoreSeverity)) {
-                return true;
-            }
-        }
-
-        return false;
+        return in_array($event->severityDesc, $this->ignoreSeverity, true);
     }
 }

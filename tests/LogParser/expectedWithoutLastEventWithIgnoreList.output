@@ -1,6 +1,6 @@
 array (
   0 => 
-  AllenJB\Notifications\LogParser\LoggedPHPEvent::__set_state(array(
+  AllenJB\Notifications\LogParser\PHPEvent::__set_state(array(
      'dtEvent' => 
     DateTimeImmutable::__set_state(array(
        'date' => '2023-01-12 11:14:26.000000',
@@ -15,12 +15,9 @@ array (
      'additional' => 
     array (
     ),
-     'rawLines' => 
-    array (
-    ),
   )),
   1 => 
-  AllenJB\Notifications\LogParser\LoggedPHPEvent::__set_state(array(
+  AllenJB\Notifications\LogParser\PHPEvent::__set_state(array(
      'dtEvent' => 
     DateTimeImmutable::__set_state(array(
        'date' => '2023-01-12 11:14:32.000000',
@@ -35,12 +32,9 @@ array (
      'additional' => 
     array (
     ),
-     'rawLines' => 
-    array (
-    ),
   )),
   2 => 
-  AllenJB\Notifications\LogParser\LoggedPHPEvent::__set_state(array(
+  AllenJB\Notifications\LogParser\PHPEvent::__set_state(array(
      'dtEvent' => 
     DateTimeImmutable::__set_state(array(
        'date' => '2023-01-17 16:59:34.000000',
@@ -53,20 +47,6 @@ array (
      'file' => '/var/www/vhosts/projectName/9b0d60f84d62a86d401df8b20ed0af4689bf4211/vendor/bunny/bunny/src/Bunny/AbstractClient.php',
      'lineNo' => '324',
      'additional' => 
-    array (
-      0 => 'Stack trace:',
-      1 => '#0 /var/www/vhosts/projectName/9b0d60f84d62a86d401df8b20ed0af4689bf4211/VendorName/Bunny/Client.php(39): Bunny\\AbstractClient->write()',
-      2 => '#1 /var/www/vhosts/projectName/9b0d60f84d62a86d401df8b20ed0af4689bf4211/vendor/bunny/bunny/src/Bunny/Client.php(87): VendorName\\Bunny\\Client->write()',
-      3 => '#2 /var/www/vhosts/projectName/9b0d60f84d62a86d401df8b20ed0af4689bf4211/vendor/bunny/bunny/src/Bunny/ClientMethods.php(765): Bunny\\Client->flushWriteBuffer()',
-      4 => '#3 /var/www/vhosts/projectName/9b0d60f84d62a86d401df8b20ed0af4689bf4211/vendor/bunny/bunny/src/Bunny/Channel.php(231): Bunny\\AbstractClient->channelClose()',
-      5 => '#4 /var/www/vhosts/projectName/9b0d60f84d62a86d401df8b20ed0af4689bf4211/vendor/bunny/bunny/src/Bunny/Client.php(151): Bunny\\Channel->close()',
-      6 => '#5 /var/www/vhosts/projectName/9b0d60f84d62a86d401df8b20ed0af4689bf4211/vendor/bunny/bunny/src/Bunny/Client.php(57): Bunny\\Client->disconnect()',
-      7 => '#6 /var/www/vhosts/projectName/9b0d60f84d62a86d401df8b20ed0af4689bf4211/VendorName/Bunny/Client.php(24): Bunny\\Client->__destruct()',
-      8 => '#7 [internal function]: VendorName\\Bunny\\Client->__destruct()',
-      9 => '#8 {main}',
-      10 => 'thrown in /var/www/vhosts/projectName/9b0d60f84d62a86d401df8b20ed0af4689bf4211/vendor/bunny/bunny/src/Bunny/AbstractClient.php on line 324',
-    ),
-     'rawLines' => 
     array (
       0 => 'Stack trace:',
       1 => '#0 /var/www/vhosts/projectName/9b0d60f84d62a86d401df8b20ed0af4689bf4211/VendorName/Bunny/Client.php(39): Bunny\\AbstractClient->write()',

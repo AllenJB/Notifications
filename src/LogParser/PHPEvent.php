@@ -5,7 +5,7 @@ namespace AllenJB\Notifications\LogParser;
 
 use DateTimeImmutable;
 
-class LoggedPHPEvent
+class PHPEvent
 {
 
     public DateTimeImmutable $dtEvent;
@@ -24,11 +24,6 @@ class LoggedPHPEvent
      * @var array<string> Additional lines
      */
     public array $additional = [];
-
-    /**
-     * @var array<string>
-     */
-    public array $rawLines = [];
 
 
     public function __construct(
@@ -59,7 +54,6 @@ class LoggedPHPEvent
     public function addLine(string $line): void
     {
         $this->additional[] = $line;
-        $this->rawLines[] = $line;
     }
 
 
