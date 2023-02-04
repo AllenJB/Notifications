@@ -24,6 +24,7 @@ parameters:
             path: **/tests/*
             reportUnmatched: false
         - '#^Parameter \#1 \$matches of method AllenJB\\Notifications\\LogParser\\PHP\:\:createEventFromMatches\(\) expects array\{date\: string, msg\: string, severity\?\: string\}, array\<string\> given\.$#'
+        - '#^Parameter \#1 \$matches of method AllenJB\\Notifications\\LogParser\\FPM\:\:createEventFromMatches\(\) expects array\{date\: string, msg\: string, severity\: string\}, array\<string\> given\.$#'
 services:
     -
         class: PHPStan\Rules\DisallowedConstructs\DisallowedImplicitArrayCreationRule
