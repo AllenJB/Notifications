@@ -1,0 +1,218 @@
+array (
+  0 => 
+  AllenJB\Notifications\LogParser\FPMEvent::__set_state(array(
+     'dtEvent' => 
+    DateTimeImmutable::__set_state(array(
+       'date' => '2023-01-09 13:43:57.000000',
+       'timezone_type' => 3,
+       'timezone' => 'UTC',
+    )),
+     'severityDesc' => 'NOTICE',
+     'message' => 'Terminating ...',
+     'pool' => NULL,
+     'pid' => NULL,
+     'function' => NULL,
+     'lineNo' => NULL,
+     'additional' => 
+    array (
+    ),
+  )),
+  1 => 
+  AllenJB\Notifications\LogParser\FPMEvent::__set_state(array(
+     'dtEvent' => 
+    DateTimeImmutable::__set_state(array(
+       'date' => '2023-01-09 13:43:57.000000',
+       'timezone_type' => 3,
+       'timezone' => 'UTC',
+    )),
+     'severityDesc' => 'NOTICE',
+     'message' => 'exiting, bye-bye!',
+     'pool' => NULL,
+     'pid' => NULL,
+     'function' => NULL,
+     'lineNo' => NULL,
+     'additional' => 
+    array (
+    ),
+  )),
+  2 => 
+  AllenJB\Notifications\LogParser\FPMEvent::__set_state(array(
+     'dtEvent' => 
+    DateTimeImmutable::__set_state(array(
+       'date' => '2023-01-27 09:52:19.000000',
+       'timezone_type' => 3,
+       'timezone' => 'UTC',
+    )),
+     'severityDesc' => 'NOTICE',
+     'message' => 'reloading: execvp("/usr/sbin/php-fpm", {"/usr/sbin/php-fpm", "--nodaemonize"})',
+     'pool' => NULL,
+     'pid' => NULL,
+     'function' => NULL,
+     'lineNo' => NULL,
+     'additional' => 
+    array (
+    ),
+  )),
+  3 => 
+  AllenJB\Notifications\LogParser\FPMEvent::__set_state(array(
+     'dtEvent' => 
+    DateTimeImmutable::__set_state(array(
+       'date' => '2023-01-27 09:52:19.000000',
+       'timezone_type' => 3,
+       'timezone' => 'UTC',
+    )),
+     'severityDesc' => 'NOTICE',
+     'message' => 'pm.start_servers is not set. It\'s been set to 30.',
+     'pool' => 'example.co.uk',
+     'pid' => NULL,
+     'function' => NULL,
+     'lineNo' => NULL,
+     'additional' => 
+    array (
+    ),
+  )),
+  4 => 
+  AllenJB\Notifications\LogParser\FPMEvent::__set_state(array(
+     'dtEvent' => 
+    DateTimeImmutable::__set_state(array(
+       'date' => '2023-01-27 09:52:19.000000',
+       'timezone_type' => 3,
+       'timezone' => 'UTC',
+    )),
+     'severityDesc' => 'NOTICE',
+     'message' => 'using inherited socket fd=8, "127.0.0.1:9000"',
+     'pool' => NULL,
+     'pid' => NULL,
+     'function' => NULL,
+     'lineNo' => NULL,
+     'additional' => 
+    array (
+    ),
+  )),
+  5 => 
+  AllenJB\Notifications\LogParser\FPMEvent::__set_state(array(
+     'dtEvent' => 
+    DateTimeImmutable::__set_state(array(
+       'date' => '2023-01-27 09:52:19.000000',
+       'timezone_type' => 3,
+       'timezone' => 'UTC',
+    )),
+     'severityDesc' => 'NOTICE',
+     'message' => 'using inherited socket fd=9, "/var/run/php-fpm/example.sock"',
+     'pool' => NULL,
+     'pid' => NULL,
+     'function' => NULL,
+     'lineNo' => NULL,
+     'additional' => 
+    array (
+    ),
+  )),
+  6 => 
+  AllenJB\Notifications\LogParser\FPMEvent::__set_state(array(
+     'dtEvent' => 
+    DateTimeImmutable::__set_state(array(
+       'date' => '2023-01-27 09:52:19.000000',
+       'timezone_type' => 3,
+       'timezone' => 'UTC',
+    )),
+     'severityDesc' => 'NOTICE',
+     'message' => 'fpm is running, pid 106970',
+     'pool' => NULL,
+     'pid' => NULL,
+     'function' => NULL,
+     'lineNo' => NULL,
+     'additional' => 
+    array (
+    ),
+  )),
+  7 => 
+  AllenJB\Notifications\LogParser\FPMEvent::__set_state(array(
+     'dtEvent' => 
+    DateTimeImmutable::__set_state(array(
+       'date' => '2023-02-04 11:38:39.585301',
+       'timezone_type' => 3,
+       'timezone' => 'UTC',
+    )),
+     'severityDesc' => 'DEBUG',
+     'message' => 'got clock tick \'100\'',
+     'pool' => NULL,
+     'pid' => 907689,
+     'function' => 'fpm_scoreboard_init_main()',
+     'lineNo' => 38,
+     'additional' => 
+    array (
+    ),
+  )),
+  8 => 
+  AllenJB\Notifications\LogParser\FPMEvent::__set_state(array(
+     'dtEvent' => 
+    DateTimeImmutable::__set_state(array(
+       'date' => '2023-02-04 11:38:39.585518',
+       'timezone_type' => 3,
+       'timezone' => 'UTC',
+    )),
+     'severityDesc' => 'NOTICE',
+     'message' => 'fpm is running, pid 907689',
+     'pool' => NULL,
+     'pid' => 907689,
+     'function' => 'fpm_init()',
+     'lineNo' => 83,
+     'additional' => 
+    array (
+    ),
+  )),
+  9 => 
+  AllenJB\Notifications\LogParser\FPMEvent::__set_state(array(
+     'dtEvent' => 
+    DateTimeImmutable::__set_state(array(
+       'date' => '2023-02-04 11:38:40.592088',
+       'timezone_type' => 3,
+       'timezone' => 'UTC',
+    )),
+     'severityDesc' => 'DEBUG',
+     'message' => 'currently 0 active children, 5 spare children, 5 running children. Spawning rate 1',
+     'pool' => 'www',
+     'pid' => 907689,
+     'function' => 'fpm_pctl_perform_idle_server_maintenance()',
+     'lineNo' => 398,
+     'additional' => 
+    array (
+    ),
+  )),
+  10 => 
+  AllenJB\Notifications\LogParser\FPMEvent::__set_state(array(
+     'dtEvent' => 
+    DateTimeImmutable::__set_state(array(
+       'date' => '2023-02-04 12:52:19.000000',
+       'timezone_type' => 3,
+       'timezone' => 'UTC',
+    )),
+     'severityDesc' => 'WARNING',
+     'message' => 'server reached max_children setting (15), consider raising it',
+     'pool' => 'www',
+     'pid' => 75057,
+     'function' => 'fpm_pctl_on_socket_accept()',
+     'lineNo' => 518,
+     'additional' => 
+    array (
+    ),
+  )),
+  11 => 
+  AllenJB\Notifications\LogParser\FPMEvent::__set_state(array(
+     'dtEvent' => 
+    DateTimeImmutable::__set_state(array(
+       'date' => '2023-02-04 12:53:19.000000',
+       'timezone_type' => 3,
+       'timezone' => 'UTC',
+    )),
+     'severityDesc' => 'ERROR',
+     'message' => '[/etc/php-fpm.d/www.conf:xxx] unknown entry \'process_control_timeout\'',
+     'pool' => NULL,
+     'pid' => NULL,
+     'function' => NULL,
+     'lineNo' => NULL,
+     'additional' => 
+    array (
+    ),
+  )),
+)
