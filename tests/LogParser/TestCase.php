@@ -5,7 +5,7 @@ namespace AllenJB\Notifications\Tests\LogParser;
 
 class TestCase extends \PHPUnit\Framework\TestCase
 {
-    protected const PATH_TO_FIXTURES = __DIR__ .'/Fixtures/';
+    protected const PATH_TO_FIXTURES = __DIR__ . '/Fixtures/';
 
 
     /**

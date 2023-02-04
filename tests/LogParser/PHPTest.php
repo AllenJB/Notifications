@@ -10,6 +10,7 @@ class PHPTest extends TestCase
 {
     protected const PATH_TO_EXPECTED = self::PATH_TO_FIXTURES . 'PHP/';
 
+
     public function testParseWithoutLastEvent(): void
     {
         $filePath = self::PATH_TO_FIXTURES . 'php_errors.log';
