@@ -1,0 +1,38 @@
+array (
+  0 => 
+  AllenJB\Notifications\LogParser\FPMEvent::__set_state(array(
+     'dtEvent' => 
+    DateTimeImmutable::__set_state(array(
+       'date' => '2023-02-04 12:52:19.000000',
+       'timezone_type' => 3,
+       'timezone' => 'UTC',
+    )),
+     'severityDesc' => 'WARNING',
+     'message' => 'server reached max_children setting (15), consider raising it',
+     'pool' => 'www',
+     'pid' => 75057,
+     'function' => 'fpm_pctl_on_socket_accept()',
+     'lineNo' => 518,
+     'additional' => 
+    array (
+    ),
+  )),
+  1 => 
+  AllenJB\Notifications\LogParser\FPMEvent::__set_state(array(
+     'dtEvent' => 
+    DateTimeImmutable::__set_state(array(
+       'date' => '2023-02-04 12:53:19.000000',
+       'timezone_type' => 3,
+       'timezone' => 'UTC',
+    )),
+     'severityDesc' => 'ERROR',
+     'message' => '[/etc/php-fpm.d/www.conf:xxx] unknown entry \'process_control_timeout\'',
+     'pool' => NULL,
+     'pid' => NULL,
+     'function' => NULL,
+     'lineNo' => NULL,
+     'additional' => 
+    array (
+    ),
+  )),
+)

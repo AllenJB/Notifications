@@ -1,0 +1,132 @@
+array (
+  0 => 
+  AllenJB\Notifications\LogParser\PHPEvent::__set_state(array(
+     'dtEvent' => 
+    DateTimeImmutable::__set_state(array(
+       'date' => '2023-01-09 13:44:01.000000',
+       'timezone_type' => 3,
+       'timezone' => 'Europe/London',
+    )),
+     'severityDesc' => 'Deprecated',
+     'severityCode' => 8192,
+     'message' => 'Optional parameter $level declared before required parameter $message is implicitly treated as a required parameter',
+     'file' => '/var/www/vhosts/projectName/a6e22323ec7148a0848acf1a5d52605e31c39d7a/system/core/Common.php',
+     'lineNo' => '350',
+     'additional' => 
+    array (
+    ),
+  )),
+  1 => 
+  AllenJB\Notifications\LogParser\PHPEvent::__set_state(array(
+     'dtEvent' => 
+    DateTimeImmutable::__set_state(array(
+       'date' => '2023-01-10 09:17:47.000000',
+       'timezone_type' => 3,
+       'timezone' => 'UTC',
+    )),
+     'severityDesc' => 'Notice',
+     'severityCode' => 8,
+     'message' => 'Undefined property: stdClass::$result',
+     'file' => '/var/www/vhosts/projectName/857c716dc107ead2f4997c06ea37465b87b06e9e/application/subdomains/admin/views/section/requests.php',
+     'lineNo' => '44',
+     'additional' => 
+    array (
+    ),
+  )),
+  2 => 
+  AllenJB\Notifications\LogParser\PHPEvent::__set_state(array(
+     'dtEvent' => 
+    DateTimeImmutable::__set_state(array(
+       'date' => '2023-01-10 09:49:17.000000',
+       'timezone_type' => 3,
+       'timezone' => 'UTC',
+    )),
+     'severityDesc' => 'Deprecated',
+     'severityCode' => 8192,
+     'message' => 'Return type of VendorName\\React\\Soap\\Protocol\\ClientDecoder::__doRequest($request, $location, $action, $version, $one_way = 0) should either be compatible with SoapClient::__doRequest(string $request, string $location, string $action, int $version, bool $oneWay = false): ?string, or the #[\\ReturnTypeWillChange] attribute should be used to temporarily suppress the notice',
+     'file' => '/var/www/vhosts/projectName/9634fc7a40344902ba89d649e56f97861a6604b6/VendorName/React/Soap/Protocol/ClientDecoder.php',
+     'lineNo' => '45',
+     'additional' => 
+    array (
+    ),
+  )),
+  3 => 
+  AllenJB\Notifications\LogParser\PHPEvent::__set_state(array(
+     'dtEvent' => 
+    DateTimeImmutable::__set_state(array(
+       'date' => '2023-01-12 11:14:26.000000',
+       'timezone_type' => 3,
+       'timezone' => 'Europe/London',
+    )),
+     'severityDesc' => 'Fatal error',
+     'severityCode' => 1,
+     'message' => 'Allowed memory size of 134217728 bytes exhausted (tried to allocate 262144 bytes)',
+     'file' => 'Unknown',
+     'lineNo' => '0',
+     'additional' => 
+    array (
+    ),
+  )),
+  4 => 
+  AllenJB\Notifications\LogParser\PHPEvent::__set_state(array(
+     'dtEvent' => 
+    DateTimeImmutable::__set_state(array(
+       'date' => '2023-01-12 11:14:32.000000',
+       'timezone_type' => 3,
+       'timezone' => 'Europe/London',
+    )),
+     'severityDesc' => 'Fatal error',
+     'severityCode' => 1,
+     'message' => 'Allowed memory size of 134217728 bytes exhausted (tried to allocate 262144 bytes)',
+     'file' => '/var/www/vhosts/projectName/c9dff4a7744ee7bda7dcaab92972dd8bf02e091a/application/core/controllers/MY_Controller.php',
+     'lineNo' => '46',
+     'additional' => 
+    array (
+    ),
+  )),
+  5 => 
+  AllenJB\Notifications\LogParser\PHPEvent::__set_state(array(
+     'dtEvent' => 
+    DateTimeImmutable::__set_state(array(
+       'date' => '2023-01-12 14:52:26.000000',
+       'timezone_type' => 3,
+       'timezone' => 'UTC',
+    )),
+     'severityDesc' => 'Warning',
+     'severityCode' => 2,
+     'message' => 'file_get_contents(https://projectName.co.uk/php-fpm-status?json&amp;full): Failed to open stream: HTTP request failed! HTTP/1.1 500 Internal Server Error',
+     'file' => '/var/www/vhosts/projectName/b053f753dea1ec4ee6d07a3923b0b1489d953fe2/default/prometheus/phpfpm.php',
+     'lineNo' => '9',
+     'additional' => 
+    array (
+    ),
+  )),
+  6 => 
+  AllenJB\Notifications\LogParser\PHPEvent::__set_state(array(
+     'dtEvent' => 
+    DateTimeImmutable::__set_state(array(
+       'date' => '2023-01-17 16:59:34.000000',
+       'timezone_type' => 3,
+       'timezone' => 'UTC',
+    )),
+     'severityDesc' => 'Fatal error',
+     'severityCode' => 1,
+     'message' => 'Uncaught Bunny\\Exception\\ClientException: Could not write data to socket.',
+     'file' => '/var/www/vhosts/projectName/9b0d60f84d62a86d401df8b20ed0af4689bf4211/vendor/bunny/bunny/src/Bunny/AbstractClient.php',
+     'lineNo' => '324',
+     'additional' => 
+    array (
+      0 => 'Stack trace:',
+      1 => '#0 /var/www/vhosts/projectName/9b0d60f84d62a86d401df8b20ed0af4689bf4211/VendorName/Bunny/Client.php(39): Bunny\\AbstractClient->write()',
+      2 => '#1 /var/www/vhosts/projectName/9b0d60f84d62a86d401df8b20ed0af4689bf4211/vendor/bunny/bunny/src/Bunny/Client.php(87): VendorName\\Bunny\\Client->write()',
+      3 => '#2 /var/www/vhosts/projectName/9b0d60f84d62a86d401df8b20ed0af4689bf4211/vendor/bunny/bunny/src/Bunny/ClientMethods.php(765): Bunny\\Client->flushWriteBuffer()',
+      4 => '#3 /var/www/vhosts/projectName/9b0d60f84d62a86d401df8b20ed0af4689bf4211/vendor/bunny/bunny/src/Bunny/Channel.php(231): Bunny\\AbstractClient->channelClose()',
+      5 => '#4 /var/www/vhosts/projectName/9b0d60f84d62a86d401df8b20ed0af4689bf4211/vendor/bunny/bunny/src/Bunny/Client.php(151): Bunny\\Channel->close()',
+      6 => '#5 /var/www/vhosts/projectName/9b0d60f84d62a86d401df8b20ed0af4689bf4211/vendor/bunny/bunny/src/Bunny/Client.php(57): Bunny\\Client->disconnect()',
+      7 => '#6 /var/www/vhosts/projectName/9b0d60f84d62a86d401df8b20ed0af4689bf4211/VendorName/Bunny/Client.php(24): Bunny\\Client->__destruct()',
+      8 => '#7 [internal function]: VendorName\\Bunny\\Client->__destruct()',
+      9 => '#8 {main}',
+      10 => 'thrown in /var/www/vhosts/projectName/9b0d60f84d62a86d401df8b20ed0af4689bf4211/vendor/bunny/bunny/src/Bunny/AbstractClient.php on line 324',
+    ),
+  )),
+)

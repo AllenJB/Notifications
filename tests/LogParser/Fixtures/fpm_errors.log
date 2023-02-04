@@ -1,0 +1,12 @@
+[09-Jan-2023 13:43:57] NOTICE: Terminating ...
+[09-Jan-2023 13:43:57] NOTICE: exiting, bye-bye!
+[27-Jan-2023 09:52:19] NOTICE: reloading: execvp("/usr/sbin/php-fpm", {"/usr/sbin/php-fpm", "--nodaemonize"})
+[27-Jan-2023 09:52:19] NOTICE: [pool example.co.uk] pm.start_servers is not set. It's been set to 30.
+[27-Jan-2023 09:52:19] NOTICE: using inherited socket fd=8, "127.0.0.1:9000"
+[27-Jan-2023 09:52:19] NOTICE: using inherited socket fd=9, "/var/run/php-fpm/example.sock"
+[27-Jan-2023 09:52:19] NOTICE: fpm is running, pid 106970
+[04-Feb-2023 11:38:39.585301] DEBUG: pid 907689, fpm_scoreboard_init_main(), line 38: got clock tick '100'
+[04-Feb-2023 11:38:39.585518] NOTICE: pid 907689, fpm_init(), line 83: fpm is running, pid 907689
+[04-Feb-2023 11:38:40.592088] DEBUG: pid 907689, fpm_pctl_perform_idle_server_maintenance(), line 398: [pool www] currently 0 active children, 5 spare children, 5 running children. Spawning rate 1
+[04-Feb-2023 12:52:19] WARNING: pid 75057, fpm_pctl_on_socket_accept(), line 518: [pool www] server reached max_children setting (15), consider raising it
+[04-Feb-2023 12:53:19] ERROR: [/etc/php-fpm.d/www.conf:xxx] unknown entry 'process_control_timeout'
