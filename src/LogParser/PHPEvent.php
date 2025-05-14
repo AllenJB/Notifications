@@ -73,9 +73,11 @@ class PHPEvent
             'recoverable fatal error' => E_RECOVERABLE_ERROR,
             'parse error' => E_PARSE,
             'deprecated' => E_DEPRECATED,
-            'strict standards' => E_STRICT,
             'unknown error' => null,
         ];
+        if (defined('E_STRICT')) {
+            $severitys['strict standards'] = E_STRICT;
+        }
 
         $severityKey = strtolower($this->severityDesc ?? '');
         $this->severityCode = ($severitys[$severityKey] ?? null);
