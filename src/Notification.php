@@ -41,7 +41,7 @@ class Notification
         string $level,
         string $loggerName,
         ?string $optionalMessage,
-        \Throwable $exception = null,
+        ?\Throwable $exception = null,
         array $context = []
     ) {
         $this->timestamp = new \DateTimeImmutable();
