@@ -16,7 +16,7 @@ class Notification
 
     protected ?\Throwable $exception = null;
 
-    protected ?string $logger = null;
+    protected string $logger;
 
     /**
      * @var array<string, array<string, mixed>>
@@ -122,6 +122,10 @@ class Notification
         return $this->logger;
     }
 
+    public function setLogger(string $loggerName): void
+    {
+        $this->logger = $loggerName;
+    }
 
     public function getException(): ?\Throwable
     {
