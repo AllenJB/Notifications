@@ -59,7 +59,7 @@ class ErrorHandler
                 $iniValue *= 1024;
             case 'k':
                 $iniValue *= 1024;
-            case '';
+            case '':
                 // Do nothing;
                 break;
             default:
